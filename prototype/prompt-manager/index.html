@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f5f5f3" />
+  <title>Relay — Prompt Manager Prototype</title>
+  <style>
+    /* THROWAWAY UI PROTOTYPE — Question: what should a calm, general prompt manager feel like? */
+    :root {
+      color-scheme: light;
+      --canvas: #f5f5f3;
+      --panel: rgba(255,255,255,.76);
+      --solid: #fff;
+      --ink: #1d1d1f;
+      --muted: #747477;
+      --faint: #a5a5a8;
+      --line: rgba(20,20,20,.09);
+      --line-strong: rgba(20,20,20,.15);
+      --accent: #2368d7;
+      --accent-hover: #1959c2;
+      --accent-soft: #e9f1ff;
+      --success: #248a4b;
+      --radius-sm: 9px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --ease-out: cubic-bezier(.23,1,.32,1);
+      --ease-in-out: cubic-bezier(.77,0,.175,1);
+      font: 15px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body { background: var(--canvas); color: var(--ink); letter-spacing: -.006em; }
+    button, input, textarea { font: inherit; }
+    button { color: inherit; }
+    svg { display: block; }
+    :focus-visible { outline: 3px solid rgba(35,104,215,.28); outline-offset: 2px; }
+
+    .app { min-height: 100dvh; display: grid; grid-template-columns: 248px minmax(0,1fr); }
+    .sidebar {
+      height: 100dvh; position: sticky; top: 0; padding: 20px 14px;
+      border-right: 1px solid var(--line); background: rgba(248,248,246,.8);
+      backdrop-filter: blur(24px) saturate(150%); display: flex; flex-direction: column; z-index: 5;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 8px; font-weight: 650; letter-spacing: -.02em; }
+    .brand-mark { width: 24px; height: 24px; border-radius: 7px; background: var(--ink); color: #fff; display: grid; place-items: center; }
+    .new-button, .primary-button, .secondary-button, .icon-button, .nav-item, .recipe-row, .chip { border: 0; cursor: pointer; }
+    .new-button { margin: 22px 4px 14px; height: 38px; border-radius: 10px; background: var(--ink); color: #fff; display:flex; align-items:center; justify-content:center; gap:8px; font-weight: 570; box-shadow: 0 1px 1px rgba(0,0,0,.08); transition: transform 130ms var(--ease-out), background 160ms ease; }
+    .new-button:active, .primary-button:active, .secondary-button:active, .icon-button:active, .chip:active { transform: scale(.97); }
+    .nav-label { padding: 12px 10px 6px; color: var(--faint); font-size: 11px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; }
+    .nav { display: grid; gap: 2px; }
+    .nav-item { width:100%; background: transparent; display:flex; align-items:center; gap:10px; border-radius: 9px; padding: 8px 10px; text-align:left; color:#555558; transition: background 140ms ease, color 140ms ease; }
+    .nav-item.active { color: var(--ink); background: rgba(0,0,0,.055); font-weight: 560; }
+    .nav-item .count { margin-left:auto; color: var(--faint); font-size:12px; }
+    .sidebar-bottom { margin-top:auto; }
+    .profile { display:flex; align-items:center; gap:10px; padding:10px 8px 2px; }
+    .avatar { width:28px; height:28px; border-radius:50%; background:#d9e4d8; display:grid; place-items:center; font-weight:650; font-size:12px; }
+    .profile-copy { min-width:0; }
+    .profile-name { font-size:13px; font-weight:570; }
+    .profile-plan { color:var(--muted); font-size:11px; }
+
+    .main { min-width:0; padding: 28px clamp(22px,4vw,64px) 72px; }
+    .topbar { max-width: 1120px; margin: 0 auto; display:flex; align-items:center; justify-content:space-between; gap:20px; }
+    .eyebrow { color:var(--muted); font-size:13px; margin-bottom:3px; }
+    h1 { margin:0; font-size:clamp(26px,3vw,34px); line-height:1.1; letter-spacing:-.035em; font-weight:660; }
+    .top-actions { display:flex; gap:8px; }
+    .icon-button { width:38px; height:38px; border-radius:10px; background:rgba(255,255,255,.7); border:1px solid var(--line); display:grid; place-items:center; transition: transform 130ms var(--ease-out), background 160ms ease; }
+    .icon-button:hover { background:#fff; }
+
+    .search-wrap { max-width:1120px; margin:28px auto 18px; position:relative; }
+    .search-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--faint); pointer-events:none; }
+    .search { width:100%; height:46px; border-radius:13px; border:1px solid var(--line); background:rgba(255,255,255,.7); padding:0 90px 0 42px; color:var(--ink); box-shadow:0 1px 1px rgba(0,0,0,.02); transition:border-color 160ms ease, background 160ms ease, box-shadow 160ms ease; }
+    .search:focus { outline:none; background:#fff; border-color:rgba(35,104,215,.42); box-shadow:0 0 0 3px rgba(35,104,215,.1); }
+    .shortcut { position:absolute; right:10px; top:50%; transform:translateY(-50%); color:var(--faint); font-size:12px; border:1px solid var(--line); border-bottom-color:var(--line-strong); border-radius:6px; padding:2px 7px; background:#fff; }
+
+    .content { max-width:1120px; margin:0 auto; display:grid; grid-template-columns:minmax(340px,.9fr) minmax(420px,1.25fr); gap:16px; align-items:start; }
+    .pane { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-lg); box-shadow:0 1px 2px rgba(0,0,0,.025); overflow:hidden; }
+    .pane-head { height:54px; display:flex; align-items:center; justify-content:space-between; padding:0 16px 0 18px; border-bottom:1px solid var(--line); }
+    .pane-title { font-size:13px; font-weight:620; }
+    .pane-meta { color:var(--muted); font-size:12px; }
+    .recipe-list { padding:6px; }
+    .recipe-row { width:100%; background:transparent; border-radius:13px; padding:13px 12px; display:grid; grid-template-columns:34px minmax(0,1fr) 28px; gap:11px; align-items:center; text-align:left; transition:background 140ms ease; }
+    .recipe-row:hover { background:rgba(0,0,0,.035); }
+    .recipe-row.active { background:var(--solid); box-shadow:0 1px 2px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.025); }
+    .recipe-icon { width:34px; height:34px; border-radius:10px; display:grid; place-items:center; background:#f0f0ed; color:#5b5b5e; }
+    .recipe-row.active .recipe-icon { background:var(--accent-soft); color:var(--accent); }
+    .recipe-name { font-size:14px; font-weight:590; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .recipe-note { margin-top:2px; color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .star { border:0; background:transparent; color:#c0c0c2; width:28px; height:28px; display:grid; place-items:center; border-radius:8px; cursor:pointer; }
+    .star.on { color:#dc9b13; }
+    .empty { display:none; padding:52px 24px; text-align:center; color:var(--muted); }
+
+    .detail { min-height:584px; }
+    .detail-header { padding:22px 24px 18px; border-bottom:1px solid var(--line); }
+    .detail-topline { display:flex; justify-content:space-between; gap:14px; }
+    .detail h2 { margin:0; font-size:21px; line-height:1.2; letter-spacing:-.025em; font-weight:650; }
+    .detail-purpose { margin:8px 0 0; color:var(--muted); max-width:55ch; }
+    .chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:14px; }
+    .chip { border-radius:999px; background:#f0f0ed; padding:5px 9px; font-size:11px; color:#626266; transition:transform 130ms var(--ease-out); }
+    .detail-body { padding:22px 24px; }
+    .section-label { margin-bottom:9px; color:var(--muted); font-size:11px; font-weight:650; text-transform:uppercase; letter-spacing:.06em; }
+    .prompt-box { margin:0; padding:16px; border-radius:12px; background:#f3f3f0; color:#444447; font:13px/1.65 ui-monospace, SFMono-Regular, Menlo, monospace; white-space:pre-wrap; border:1px solid rgba(0,0,0,.04); }
+    .variable { color:var(--accent); font-weight:650; background:#e5efff; padding:1px 3px; border-radius:4px; }
+    .detail-footer { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 24px; border-top:1px solid var(--line); }
+    .saved { color:var(--muted); font-size:12px; display:flex; align-items:center; gap:6px; }
+    .saved-dot { width:6px; height:6px; border-radius:50%; background:#76af81; }
+    .button-group { display:flex; gap:8px; }
+    .secondary-button, .primary-button { min-height:38px; border-radius:10px; padding:0 14px; display:inline-flex; align-items:center; justify-content:center; gap:8px; font-weight:590; transition:transform 130ms var(--ease-out), background 160ms ease; }
+    .secondary-button { background:#fff; border:1px solid var(--line-strong); }
+    .primary-button { background:var(--accent); color:#fff; border:1px solid rgba(0,0,0,.06); box-shadow:0 1px 1px rgba(0,0,0,.08); }
+    .primary-button:hover { background:var(--accent-hover); }
+
+    dialog { border:0; padding:0; background:transparent; width:min(560px,calc(100vw - 28px)); max-height:calc(100dvh - 28px); }
+    dialog::backdrop { background:rgba(23,23,24,.25); backdrop-filter:blur(2px); }
+    .sheet { background:rgba(252,252,251,.96); backdrop-filter:blur(28px) saturate(160%); border:1px solid rgba(255,255,255,.7); border-radius:22px; box-shadow:0 24px 70px rgba(0,0,0,.2), 0 2px 8px rgba(0,0,0,.08); overflow:hidden; opacity:1; transform:translateY(0) scale(1); transition:opacity 180ms var(--ease-out), transform 240ms var(--ease-out); }
+    dialog:not([open]) .sheet { opacity:0; transform:translateY(10px) scale(.98); }
+    .sheet-head { padding:20px 22px 16px; display:flex; justify-content:space-between; gap:20px; border-bottom:1px solid var(--line); }
+    .sheet h2 { margin:0; font-size:19px; letter-spacing:-.025em; }
+    .sheet-subtitle { margin:5px 0 0; color:var(--muted); font-size:13px; }
+    .close-button { border:0; background:#e8e8e5; width:28px; height:28px; border-radius:50%; display:grid; place-items:center; cursor:pointer; color:#68686b; }
+    .form { padding:20px 22px; display:grid; gap:16px; }
+    label { display:grid; gap:7px; font-size:12px; font-weight:620; }
+    .field-help { color:var(--muted); font-weight:400; }
+    .field { width:100%; border:1px solid var(--line-strong); border-radius:11px; padding:10px 12px; background:#fff; color:var(--ink); resize:vertical; transition:border-color 150ms ease, box-shadow 150ms ease; }
+    .field:focus { outline:none; border-color:rgba(35,104,215,.55); box-shadow:0 0 0 3px rgba(35,104,215,.1); }
+    textarea.field { min-height:104px; }
+    .sheet-footer { padding:14px 22px; border-top:1px solid var(--line); display:flex; justify-content:flex-end; gap:8px; }
+    .toast { position:fixed; left:50%; bottom:24px; z-index:30; transform:translate(-50%,12px) scale(.98); opacity:0; pointer-events:none; background:rgba(29,29,31,.92); backdrop-filter:blur(18px); color:#fff; border-radius:999px; padding:10px 14px; display:flex; align-items:center; gap:8px; font-size:13px; box-shadow:0 8px 26px rgba(0,0,0,.2); transition:opacity 180ms var(--ease-out), transform 220ms var(--ease-out); }
+    .toast.show { opacity:1; transform:translate(-50%,0) scale(1); }
+    .mobile-head { display:none; }
+
+    @media (max-width: 900px) {
+      .app { grid-template-columns:84px minmax(0,1fr); }
+      .sidebar { padding-inline:10px; }
+      .brand { justify-content:center; padding:0; }
+      .brand span:last-child, .new-button span, .nav-label, .nav-item span, .nav-item .count, .profile-copy { display:none; }
+      .new-button { width:42px; margin-inline:auto; }
+      .nav-item { width:42px; height:42px; padding:0; justify-content:center; margin-inline:auto; }
+      .profile { justify-content:center; }
+      .content { grid-template-columns:1fr; }
+      .list-pane { max-height:322px; overflow:auto; }
+    }
+    @media (max-width: 620px) {
+      .app { display:block; }
+      .sidebar { display:none; }
+      .main { padding:0 14px 88px; }
+      .mobile-head { height:58px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:5; margin:0 -14px; padding:0 16px; background:rgba(245,245,243,.82); backdrop-filter:blur(22px) saturate(160%); border-bottom:1px solid var(--line); }
+      .mobile-brand { display:flex; align-items:center; gap:8px; font-weight:650; }
+      .topbar { padding-top:22px; align-items:flex-end; }
+      .top-actions { display:none; }
+      .search-wrap { margin-top:20px; }
+      .shortcut { display:none; }
+      .search { padding-right:14px; }
+      .content { gap:12px; }
+      .pane { border-radius:16px; }
+      .detail { min-height:0; }
+      .detail-header, .detail-body { padding-inline:18px; }
+      .detail-footer { padding:14px 18px; align-items:stretch; flex-direction:column; }
+      .button-group { display:grid; grid-template-columns:1fr 1.4fr; }
+      .saved { display:none; }
+      dialog { margin:auto auto 8px; width:calc(100vw - 16px); max-height:calc(100dvh - 16px); }
+      .sheet { border-radius:22px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior:auto !important; transition-duration:.01ms !important; animation-duration:.01ms !important; }
+      .sheet, .toast { transform:none; }
+      .toast { left:50%; transform:translateX(-50%); }
+    }
+    @media (prefers-reduced-transparency: reduce) {
+      .sidebar, .mobile-head, .sheet, .toast { backdrop-filter:none; }
+      .sidebar, .mobile-head, .sheet { background:#fff; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" aria-label="Main navigation">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">R</span><span>Relay</span></div>
+      <button class="new-button" id="newRecipe"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg><span>New recipe</span></button>
+      <div class="nav-label">Workspace</div>
+      <nav class="nav">
+        <button class="nav-item active"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5z"/><path d="M8 4v16"/></svg><span>Library</span><span class="count">12</span></button>
+        <button class="nav-item"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Favorites</span><span class="count">4</span></button>
+        <button class="nav-item"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg><span>Recently used</span></button>
+      </nav>
+      <div class="nav-label">Packs</div>
+      <nav class="nav"><button class="nav-item"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg><span>Research</span></button><button class="nav-item"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 18V6l8-3 8 3v12l-8 3zM12 3v18"/></svg><span>Writing</span></button></nav>
+      <div class="sidebar-bottom"><div class="profile"><div class="avatar">SV</div><div class="profile-copy"><div class="profile-name">Santosh</div><div class="profile-plan">Personal workspace</div></div></div></div>
+    </aside>
+
+    <main class="main">
+      <header class="mobile-head"><div class="mobile-brand"><span class="brand-mark">R</span>Relay</div><button class="icon-button" aria-label="Create recipe" id="mobileNew"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button></header>
+      <div class="topbar"><div><div class="eyebrow">Personal workspace</div><h1>Your recipes</h1></div><div class="top-actions"><button class="icon-button" aria-label="Import recipe"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 19h14"/></svg></button><button class="icon-button" aria-label="More options"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></button></div></div>
+
+      <div class="search-wrap"><span class="search-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></span><input id="search" class="search" type="search" placeholder="Search recipes" aria-label="Search recipes"/><span class="shortcut">⌘ K</span></div>
+
+      <div class="content">
+        <section class="pane list-pane" aria-labelledby="library-title"><div class="pane-head"><span class="pane-title" id="library-title">All recipes</span><span class="pane-meta" id="count">5 recipes</span></div><div class="recipe-list" id="recipeList"></div><div class="empty" id="empty">No recipes match your search.</div></section>
+        <article class="pane detail" id="detail" aria-live="polite"></article>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="useDialog" aria-labelledby="dialogTitle"><div class="sheet"><div class="sheet-head"><div><h2 id="dialogTitle">Use recipe</h2><p class="sheet-subtitle" id="dialogSubtitle"></p></div><button class="close-button" id="closeDialog" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div><form id="recipeForm"><div class="form"><label>Topic <span class="field-help">What should this recipe work on?</span><input class="field" name="topic" placeholder="e.g. building a weekly review habit" required /></label><label>Source or notes <span class="field-help">Paste anything the AI should reference.</span><textarea class="field" name="source" placeholder="Paste text, notes, or a URL…"></textarea></label><label>Audience <input class="field" name="audience" value="A thoughtful general audience" /></label></div><div class="sheet-footer"><button type="button" class="secondary-button" id="cancelDialog">Cancel</button><button type="submit" class="primary-button"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>Copy prompt</button></div></form></div></dialog>
+  <div class="toast" id="toast" role="status"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="m5 12 4 4L19 6"/></svg><span>Prompt copied</span></div>
+
+  <script>
+    const icon = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg>`;
+    const recipes = [
+      {id:1,title:'Research a topic with sources',note:'Build an evidence-led briefing',category:'Research',used:'Used yesterday',fav:true,purpose:'Create a balanced, source-aware brief before forming a conclusion.',prompt:'Research {{topic}} for {{audience}}. Use the supplied material as a starting point, distinguish facts from interpretation, include credible sources, surface disagreement, and end with open questions.\n\nSource material:\n{{source}}'},
+      {id:2,title:'Turn notes into a clear draft',note:'Shape rough thinking into useful writing',category:'Writing',used:'Used 3 days ago',fav:true,purpose:'Transform unstructured notes into a concise, coherent first draft.',prompt:'Turn these notes into a clear draft about {{topic}} for {{audience}}. Preserve the original ideas and voice. Do not invent supporting facts. Flag gaps that need more evidence.\n\nNotes:\n{{source}}'},
+      {id:3,title:'Evaluate options',note:'Compare choices against real constraints',category:'Thinking',used:'Used last week',fav:false,purpose:'Make a decision visible without pretending uncertainty does not exist.',prompt:'Evaluate the options related to {{topic}} for {{audience}}. Define decision criteria, compare tradeoffs, state assumptions, identify reversible choices, and recommend a next step.\n\nContext:\n{{source}}'},
+      {id:4,title:'Explain a difficult concept',note:'Teach clearly without oversimplifying',category:'Learning',used:'Used 2 weeks ago',fav:false,purpose:'Build understanding through a clear explanation, analogy, and check.',prompt:'Explain {{topic}} to {{audience}}. Start with the core intuition, introduce necessary terms only when needed, use one concrete analogy, cover common misconceptions, and finish with three questions that test understanding.\n\nContext:\n{{source}}'},
+      {id:5,title:'Improve a piece of writing',note:'Diagnose first, then rewrite',category:'Writing',used:'Used 2 weeks ago',fav:true,purpose:'Improve clarity and force without replacing the author’s voice.',prompt:'Review the writing below for {{audience}}. First diagnose structure, clarity, specificity, and voice. Then rewrite it while preserving intent. Explain the three most consequential changes.\n\nTopic: {{topic}}\n\nDraft:\n{{source}}'}
+    ];
+    let selected = recipes[0];
+    const list = document.querySelector('#recipeList');
+    const detail = document.querySelector('#detail');
+    const empty = document.querySelector('#empty');
+    const count = document.querySelector('#count');
+    const dialog = document.querySelector('#useDialog');
+    const toast = document.querySelector('#toast');
+
+    function escapeHtml(s){ return s.replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+    function highlightPrompt(s){ return escapeHtml(s).replace(/\{\{(.*?)\}\}/g,'<span class="variable">{{$1}}</span>'); }
+    function renderList(query='') {
+      const shown = recipes.filter(r => `${r.title} ${r.note} ${r.category}`.toLowerCase().includes(query.toLowerCase()));
+      count.textContent = `${shown.length} recipe${shown.length===1?'':'s'}`;
+      empty.style.display = shown.length ? 'none' : 'block';
+      list.innerHTML = shown.map(r => `<button class="recipe-row ${r.id===selected.id?'active':''}" data-id="${r.id}"><span class="recipe-icon">${icon}</span><span><span class="recipe-name">${r.title}</span><span class="recipe-note">${r.note}</span></span><span class="star ${r.fav?'on':''}" data-star="${r.id}" role="button" aria-label="${r.fav?'Remove from':'Add to'} favorites">${r.fav?'★':'☆'}</span></button>`).join('');
+    }
+    function renderDetail() {
+      detail.innerHTML = `<div class="detail-header"><div class="detail-topline"><div><h2>${selected.title}</h2><p class="detail-purpose">${selected.purpose}</p></div><button class="icon-button" aria-label="Recipe options"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></button></div><div class="chips"><span class="chip">${selected.category}</span><span class="chip">3 inputs</span><span class="chip">Version 3</span></div></div><div class="detail-body"><div class="section-label">Prompt</div><pre class="prompt-box">${highlightPrompt(selected.prompt)}</pre></div><div class="detail-footer"><span class="saved"><span class="saved-dot"></span>${selected.used}</span><div class="button-group"><button class="secondary-button" id="historyButton"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg>History</button><button class="primary-button" id="useButton">Use recipe <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></button></div></div>`;
+      document.querySelector('#useButton').onclick = openUse;
+      document.querySelector('#historyButton').onclick = () => showToast('Version 3 · saved 2 days ago');
+    }
+    function openUse(){ document.querySelector('#dialogTitle').textContent='Use recipe'; document.querySelector('#dialogSubtitle').textContent=selected.title; dialog.showModal(); setTimeout(()=>dialog.querySelector('input').focus(),30); }
+    function closeUse(){ dialog.close(); }
+    function showToast(message){ toast.querySelector('span').textContent=message; toast.classList.add('show'); clearTimeout(window.toastTimer); window.toastTimer=setTimeout(()=>toast.classList.remove('show'),1800); }
+
+    list.addEventListener('click', e => {
+      const star = e.target.closest('[data-star]');
+      if(star){ e.stopPropagation(); const r=recipes.find(x=>x.id===+star.dataset.star); r.fav=!r.fav; renderList(document.querySelector('#search').value); return; }
+      const row=e.target.closest('[data-id]'); if(!row)return; selected=recipes.find(r=>r.id===+row.dataset.id); renderList(document.querySelector('#search').value); renderDetail();
+    });
+    document.querySelector('#search').addEventListener('input', e=>renderList(e.target.value));
+    document.addEventListener('keydown', e=>{ if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();document.querySelector('#search').focus();} if(e.key==='Escape'&&dialog.open)closeUse(); });
+    document.querySelector('#closeDialog').onclick=closeUse;
+    document.querySelector('#cancelDialog').onclick=closeUse;
+    dialog.addEventListener('click',e=>{if(e.target===dialog)closeUse();});
+    document.querySelector('#recipeForm').addEventListener('submit', async e=>{ e.preventDefault(); const d=new FormData(e.currentTarget); const compiled=selected.prompt.replaceAll('{{topic}}',d.get('topic')).replaceAll('{{source}}',d.get('source')).replaceAll('{{audience}}',d.get('audience')); try{await navigator.clipboard.writeText(compiled);}catch{} closeUse(); showToast('Prompt copied'); });
+    function newRecipe(){ showToast('New recipe editor would open'); }
+    document.querySelector('#newRecipe').onclick=newRecipe; document.querySelector('#mobileNew').onclick=newRecipe;
+    renderList(); renderDetail();
+  </script>
+</body>
+</html>

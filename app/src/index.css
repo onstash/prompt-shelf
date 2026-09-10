@@ -1,0 +1,99 @@
+@import "tailwindcss";
+@theme inline {
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+}
+:root {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  color: #202124;
+  background: #f7f7f5;
+}
+* {
+  border-color: #e5e5e2;
+}
+body {
+  margin: 0;
+  min-width: 320px;
+}
+[data-slot="card"] {
+  gap: 0;
+  padding-block: 0;
+  border-radius: 20px;
+  overflow: hidden;
+}
+[data-slot="card-header"] {
+  gap: 0;
+  align-items: center;
+  padding: 19px 22px !important;
+}
+[data-slot="card-title"] {
+  line-height: 1.2;
+}
+[data-slot="card-content"] {
+  padding-block: 0;
+}
+.preview-header {
+  display: flex !important;
+  flex-direction: row !important;
+}
+.grid > [data-slot="card"]:first-child > [data-slot="card-content"] {
+  padding-block: 28px !important;
+}
+.grid > [data-slot="card"]:nth-child(2) > [data-slot="card-content"] {
+  padding-block: 22px !important;
+}
+.bg-primary {
+  background-color: #1768e5 !important;
+  color: #fff !important;
+  cursor: pointer;
+}
+.bg-primary:hover {
+  background-color: #0e5acb !important;
+}
+button[role="combobox"] {
+  width: 100%;
+}
+button,
+input,
+textarea,
+[role="combobox"] {
+  transition:
+    transform 140ms cubic-bezier(0.23, 1, 0.32, 1),
+    box-shadow 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+button:active {
+  transform: scale(0.98);
+}
+mark {
+  background: #dcecff;
+  color: #075bc7;
+  border-radius: 0.3rem;
+  padding: 0.12rem 0.3rem;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.rounded-xl {
+  border-radius: 1.15rem;
+}
+.shadow-sm {
+  box-shadow: 0 8px 28px rgb(0 0 0 / 0.045);
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
