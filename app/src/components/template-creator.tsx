@@ -23,7 +23,7 @@ type Props = {
 
 export function TemplateCreator({ draft, setDraft, onCancel, onSave, emptyField }: Props) {
   return (
-    <main className="mx-auto max-w-[760px] px-5 py-10 lg:py-14">
+    <main className="mx-auto max-w-[760px] px-5 py-10">
       <button className="mb-8 text-sm text-muted-foreground" onClick={onCancel}>
         ← Back to shelf
       </button>

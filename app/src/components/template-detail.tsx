@@ -40,7 +40,7 @@ export function TemplateDetail({
   onSavePreset,
 }: Props) {
   return (
-    <main className="mx-auto max-w-7xl px-5 py-10 lg:px-10 lg:py-14">
+    <main className="mx-auto max-w-7xl px-5 py-10">
       <div className="mb-8 flex items-center gap-2 text-sm text-muted-foreground">
         <span>My shelf</span>
         <span>/</span>
