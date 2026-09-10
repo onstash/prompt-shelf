@@ -162,7 +162,7 @@ function App() {
                 </div>
                 <div className="flex flex-col gap-2">
                   <Label>Tone</Label>
-                  <Select value={values.tone} onValueChange={(v) => update("tone", v)}>
+                  <Select value={values.tone} onValueChange={(v) => update("tone", v ?? "clear")}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -175,7 +175,7 @@ function App() {
                 </div>
                 <div className="flex flex-col gap-2">
                   <Label>Length</Label>
-                  <Select value={values.length} onValueChange={(v) => update("length", v)}>
+                  <Select value={values.length} onValueChange={(v) => update("length", v ?? "short")}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
