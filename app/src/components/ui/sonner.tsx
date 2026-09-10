@@ -15,6 +15,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
 
   return (
     <Sonner
+      // SAFETY: useTheme returns the app's supported theme value.
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
       icons={{
@@ -24,6 +25,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
         error: <OctagonXIcon className="size-4" />,
         loading: <Loader2Icon className="size-4 animate-spin" />,
       }}
+      // SAFETY: Sonner accepts CSS custom properties for its theme tokens.
       style={
         {
           "--normal-bg": "var(--popover)",

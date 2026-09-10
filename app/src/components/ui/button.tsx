@@ -54,4 +54,6 @@ function Button({
   );
 }
 
+// The variant factory is intentionally exported for composing product-specific buttons.
+// oxlint-disable-next-line react/only-export-components
 export { Button, buttonVariants };

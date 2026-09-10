@@ -45,4 +45,6 @@ function Badge({
   });
 }
 
+// The variant factory is intentionally exported for composing product-specific badges.
+// oxlint-disable-next-line react/only-export-components
 export { Badge, badgeVariants };

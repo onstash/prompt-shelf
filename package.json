@@ -7,6 +7,12 @@
     "build:frontend": "npm --prefix app run build",
     "lint": "npm --prefix app run lint",
     "format": "npm --prefix app run format",
-    "format:check": "npm --prefix app run format:check"
-  }
+    "format:check": "npm --prefix app run format:check",
+    "prepare": "lefthook install"
+  },
+  "devDependencies": {
+    "@oxlint/plugins": "^1.79.0",
+    "lefthook": "^2.1.12"
+  },
+  "type": "module"
 }
