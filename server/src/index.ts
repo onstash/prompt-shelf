@@ -42,14 +42,15 @@ const template: Template = {
     },
   ],
 };
+const templates = new Map<string, Template>([[template.id, template]]);
 const app = new Hono();
 app.use("*", cors());
 app.get("/health", (c) => c.json({ ok: true, service: "prompt-shelf-api" }));
-app.get("/api/templates/:id", (c) =>
-  c.req.param("id") === template.id
-    ? c.json(template)
-    : c.json({ error: "Template not found" }, 404),
-);
+app.get("/api/templates", (c) => c.json([...templates.values()]));
+app.get("/api/templates/:id", (c) => {
+  const found = templates.get(c.req.param("id"));
+  return found ? c.json(found) : c.json({ error: "Template not found" }, 404);
+});
 app.post("/api/templates", async (c) => {
   const input = await c.req.json<Partial<Template>>();
   if (!input.title?.trim() || !input.body?.trim())
@@ -67,12 +68,14 @@ app.post("/api/templates", async (c) => {
     fields: input.fields ?? [],
     version: 1,
   };
+  templates.set(created.id, created);
   return c.json(created, 201);
 });
 app.post("/api/templates/:id/compile", async (c) => {
-  if (c.req.param("id") !== template.id) return c.json({ error: "Template not found" }, 404);
+  const selected = templates.get(c.req.param("id"));
+  if (!selected) return c.json({ error: "Template not found" }, 404);
   const values = await c.req.json<Record<string, string>>();
-  const missing = template.fields
+  const missing = selected.fields
     .filter((f) => f.required && !values[f.key]?.trim())
     .map((f) => f.key);
   if (missing.length) return c.json({ error: "Required fields are missing", missing }, 422);
@@ -80,14 +83,14 @@ app.post("/api/templates/:id/compile", async (c) => {
   let last = 0;
   const token = /{{\s*([\w-]+)\s*}}/g;
   let match: RegExpExecArray | null;
-  while ((match = token.exec(template.body))) {
+  while ((match = token.exec(selected.body))) {
     if (match.index > last)
-      segments.push({ type: "static", text: template.body.slice(last, match.index) });
+      segments.push({ type: "static", text: selected.body.slice(last, match.index) });
     segments.push({ type: "value", key: match[1], text: values[match[1]] ?? "" });
     last = match.index + match[0].length;
   }
-  if (last < template.body.length)
-    segments.push({ type: "static", text: template.body.slice(last) });
+  if (last < selected.body.length)
+    segments.push({ type: "static", text: selected.body.slice(last) });
   return c.json({ text: segments.map((s) => s.text).join(""), segments });
 });
 const port = Number(process.env.PORT ?? 8787);

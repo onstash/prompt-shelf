@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -31,16 +31,31 @@ function App() {
   const template = templateQuery.data;
   const loadingTemplate = templateQuery.isLoading;
   const compileMutation = useMutation({
-    mutationFn: () =>
-      api.compileTemplate("clear-first-draft", {
-        ...values,
-        tone: tone ?? "",
-        length: length ?? "",
-      }),
+    mutationFn: (previewValues?: Record<string, string>) =>
+      api.compileTemplate(
+        "clear-first-draft",
+        previewValues ?? {
+          ...values,
+          tone: tone ?? "",
+          length: length ?? "",
+        },
+      ),
     onSuccess: (result) => {
       setCompiledSegments(result.segments);
     },
   });
+  useEffect(() => {
+    if (!template) return;
+    compileMutation.mutate(
+      Object.fromEntries(
+        template.fields.map((field) => [
+          field.key,
+          // SAFETY: template field keys correspond to the supported runtime form values.
+          values[field.key as keyof Values] || `[${field.label}]`,
+        ]),
+      ),
+    );
+  }, [template, values]);
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -117,7 +132,7 @@ function App() {
   return (
     <div className="min-h-screen bg-[#f8f8f6] text-[#202124]">
       <header className="sticky top-0 z-10 border-b border-black/[.07] bg-[#f8f8f6]/90 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 lg:px-10">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5">
           <a className="flex items-center gap-2 font-semibold tracking-[-.04em]" href="#">
             Prompt Shelf
           </a>

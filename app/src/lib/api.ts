@@ -62,6 +62,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  listTemplates: () => request<Template[]>("/api/templates"),
   getTemplate: (id: string) => request<Template>(`/api/templates/${id}`),
   compileTemplate: (id: string, values: Record<string, string>) =>
     request<CompileResult>(`/api/templates/${id}/compile`, {
