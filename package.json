@@ -5,9 +5,9 @@
     "dev:frontend": "npm --prefix app run dev",
     "dev:backend": "npm --prefix server run dev",
     "build:frontend": "npm --prefix app run build",
-    "lint": "npm --prefix app run lint",
-    "format": "npm --prefix app run format",
-    "format:check": "npm --prefix app run format:check",
+    "lint": "npm --prefix app run lint && npm --prefix server run lint",
+    "format": "npm --prefix app run format && npm --prefix server run format",
+    "format:check": "npm --prefix app run format:check && npm --prefix server run format:check",
     "prepare": "lefthook install"
   },
   "devDependencies": {
