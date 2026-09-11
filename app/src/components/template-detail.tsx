@@ -26,6 +26,7 @@ type Props = {
   onCopy: () => void;
   saved: boolean;
   onSavePreset: () => void;
+  onEdit: () => void;
 };
 
 export function TemplateDetail({
@@ -38,6 +39,7 @@ export function TemplateDetail({
   onCopy,
   saved,
   onSavePreset,
+  onEdit,
 }: Props) {
   return (
     <main className="mx-auto max-w-7xl px-5 py-10">
@@ -54,8 +56,12 @@ export function TemplateDetail({
           {loading ? "Loading template…" : (template?.title ?? "Clear first draft")}
         </h1>
         <p className="mt-4 text-lg leading-8 text-muted-foreground">
-          Turn a rough idea into a clear, useful first draft without losing your own voice.
+          {template?.description ||
+            "Turn a rough idea into a clear, useful first draft without losing your own voice."}
         </p>
+        <Button variant="outline" className="mt-5" onClick={onEdit}>
+          Edit template
+        </Button>
       </section>
       <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,.8fr)]">
         <PromptPreview segments={segments} copied={copied} onCopy={onCopy} />

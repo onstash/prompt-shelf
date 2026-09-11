@@ -71,6 +71,24 @@ app.post("/api/templates", async (c) => {
   templates.set(created.id, created);
   return c.json(created, 201);
 });
+app.put("/api/templates/:id", async (c) => {
+  const id = c.req.param("id");
+  const existing = templates.get(id);
+  if (!existing) return c.json({ error: "Template not found" }, 404);
+  const input = await c.req.json<Partial<Template>>();
+  if (!input.title?.trim() || !input.body?.trim())
+    return c.json({ error: "Title and prompt body are required" }, 422);
+  const updated = {
+    ...existing,
+    title: input.title.trim(),
+    description: input.description?.trim() ?? "",
+    body: input.body,
+    fields: input.fields ?? [],
+    version: existing.version + 1,
+  };
+  templates.set(id, updated);
+  return c.json(updated);
+});
 app.post("/api/templates/:id/compile", async (c) => {
   const selected = templates.get(c.req.param("id"));
   if (!selected) return c.json({ error: "Template not found" }, 404);

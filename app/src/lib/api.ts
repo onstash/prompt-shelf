@@ -69,6 +69,14 @@ export const api = {
       method: "POST",
       body: JSON.stringify(values),
     }),
+  updateTemplate: (
+    id: string,
+    input: Pick<Template, "title" | "description" | "body" | "fields">,
+  ) =>
+    request<Template>(`/api/templates/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
   createTemplate: (input: Pick<Template, "title" | "description" | "body" | "fields">) =>
     request<Template>("/api/templates", {
       method: "POST",

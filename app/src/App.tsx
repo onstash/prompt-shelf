@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,8 +27,9 @@ const emptyField = (): TemplateField => ({
 });
 
 function App() {
+  const queryClient = useQueryClient();
   const [selectedTemplateId, setSelectedTemplateId] = useState("clear-first-draft");
-  const [values, setValues] = useState(initial);
+  const [values, setValues] = useState<Record<string, string>>(initial);
   const templatesQuery = useQuery({ queryKey: ["templates"], queryFn: api.listTemplates });
   const [compiledSegments, setCompiledSegments] = useState<
     Array<{ type: "static" | "value"; text: string; key?: string }>
@@ -68,6 +69,7 @@ function App() {
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState(false);
   // SAFETY: the initial draft fields are explicitly constructed as TemplateField values.
   const [draft, setDraft] = useState({
     title: "",
@@ -95,7 +97,11 @@ function App() {
   });
   const update = (key: string, value: string) =>
     setValues((current) => ({ ...current, [key]: value }));
-  const ready = values.idea.trim() !== "" && values.audience.trim() !== "";
+  const resetValues = (nextTemplate: typeof template) =>
+    setValues(Object.fromEntries((nextTemplate?.fields ?? []).map((field) => [field.key, ""])));
+  const ready = (template?.fields ?? [])
+    .filter((field) => field.required)
+    .every((field) => values[field.key]?.trim());
   const tone = {
     clear: "clear and conversational",
     warm: "warm and encouraging",
@@ -126,8 +132,14 @@ function App() {
     const keys = draft.fields.map((field) => field.key.trim());
     if (new Set(keys).size !== keys.length) return toast.error("Field keys must be unique");
     try {
-      await api.createTemplate(draft);
+      const created = editing
+        ? await api.updateTemplate(selectedTemplateId, draft)
+        : await api.createTemplate(draft);
+      await queryClient.invalidateQueries({ queryKey: ["templates"] });
+      setSelectedTemplateId(created.id);
+      resetValues(created);
       setCreating(false);
+      setEditing(false);
       toast.success("Template created");
     } catch {
       toast.error("Start the local API to create templates");
@@ -151,7 +163,7 @@ function App() {
               onValueChange={(value) => {
                 if (!value) return;
                 setSelectedTemplateId(value);
-                setValues(initial);
+                resetValues(templatesQuery.data?.find((item) => item.id === value));
                 setCompiledSegments([]);
               }}
             >
@@ -194,6 +206,17 @@ function App() {
           onCopy={copyPrompt}
           saved={saved}
           onSavePreset={savePreset}
+          onEdit={() => {
+            if (!template) return;
+            setDraft({
+              title: template.title,
+              description: template.description,
+              body: template.body,
+              fields: template.fields,
+            });
+            setEditing(true);
+            setCreating(true);
+          }}
         />
       )}
       <Toaster position="bottom-center" />
