@@ -7,12 +7,12 @@ type Props = { segments: Segment[]; copied: boolean; onCopy: () => void };
 
 export function PromptPreview({ segments, copied, onCopy }: Props) {
   return (
-    <Card className="overflow-hidden border-black/[.08] shadow-sm">
+    <Card className="flex overflow-hidden border-black/[.08] shadow-sm lg:h-[680px] lg:flex-col">
       <CardHeader className="preview-header items-center justify-between border-b bg-white/60 px-6 py-4">
         <CardTitle className="text-base">Live prompt</CardTitle>
         <span className="text-xs text-muted-foreground">Version 3 · autosaved</span>
       </CardHeader>
-      <CardContent className="bg-white px-6 py-7">
+      <CardContent className="min-h-0 flex-1 overflow-y-auto bg-white px-6 py-7">
         <div className="min-h-[310px] whitespace-pre-wrap font-mono text-[14px] leading-8 text-[#45464a] sm:text-[15px]">
           {segments.length > 0
             ? segments.map((segment, index) =>

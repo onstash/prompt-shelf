@@ -63,9 +63,9 @@ export function TemplateDetail({
           Edit template
         </Button>
       </section>
-      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,.8fr)]">
+      <div className="grid items-stretch gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,.8fr)]">
         <PromptPreview segments={segments} copied={copied} onCopy={onCopy} />
-        <Card className="border-black/[.08] shadow-sm">
+        <Card className="flex overflow-hidden border-black/[.08] shadow-sm lg:h-[680px] lg:flex-col">
           <CardHeader className="border-b bg-white/60 px-6 py-4">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base">Customize</CardTitle>
@@ -74,7 +74,7 @@ export function TemplateDetail({
               </span>
             </div>
           </CardHeader>
-          <CardContent className="bg-white px-6 py-6">
+          <CardContent className="min-h-0 flex-1 overflow-y-auto bg-white px-6 py-6">
             <div className="flex flex-col gap-5">
               {(template?.fields ?? []).map((field) => (
                 <div className="flex flex-col gap-2" key={field.key}>
