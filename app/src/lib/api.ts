@@ -16,6 +16,7 @@ export type Template = {
   body: string;
   fields: TemplateField[];
   version: number;
+  updatedAt: string;
 };
 export type CompileResult = {
   text: string;

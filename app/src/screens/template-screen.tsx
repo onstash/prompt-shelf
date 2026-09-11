@@ -6,7 +6,11 @@ import { TemplateCreator, type TemplateDraft } from "@/components/template-creat
 import { TemplateDetail } from "@/components/template-detail";
 import { api, type Template, type TemplateField } from "@/lib/api";
 
-type Props = { templates: Template[]; startCreating?: boolean };
+type Props = {
+  templates: Template[];
+  startCreating?: boolean;
+  initialTemplateId?: string;
+};
 type Values = Record<string, string>;
 
 const emptyField = (): TemplateField => ({
@@ -27,15 +31,17 @@ const newDraft: TemplateDraft = {
 const emptyValues = (template?: Template) =>
   Object.fromEntries((template?.fields ?? []).map((field) => [field.key, ""]));
 
-export function TemplateScreen({ templates, startCreating = false }: Props) {
+export function TemplateScreen({ templates, startCreating = false, initialTemplateId }: Props) {
   const queryClient = useQueryClient();
+  const initialTemplate =
+    templates.find((template) => template.id === initialTemplateId) ?? templates[0];
   const [selectedTemplateId, setSelectedTemplateId] = useState(
-    templates[0]?.id ?? "clear-first-draft",
+    initialTemplate?.id ?? "clear-first-draft",
   );
   const [creating, setCreating] = useState(startCreating);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<TemplateDraft>(newDraft);
-  const [values, setValues] = useState<Values>(() => emptyValues(templates[0]));
+  const [values, setValues] = useState<Values>(() => emptyValues(initialTemplate));
   const [segments, setSegments] = useState<
     Array<{ type: "static" | "value"; text: string; key?: string }>
   >([]);

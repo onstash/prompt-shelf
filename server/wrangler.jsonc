@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "prompt-shelf-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-03-01",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "prompt-shelf",
+      "database_id": "f2fb36ca-7fc2-442e-8061-abaa6d1a22ef",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

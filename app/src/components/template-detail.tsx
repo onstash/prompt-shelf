@@ -16,6 +16,22 @@ import type { Template } from "@/lib/api";
 import { PromptPreview } from "@/components/prompt-preview";
 
 type Values = Record<string, string>;
+
+function revisionLabel(template?: Template) {
+  if (!template) return "Loading revision…";
+  if (!template.updatedAt) return `Version ${template.version}`;
+  const timestamp = template.updatedAt.includes("T")
+    ? template.updatedAt
+    : `${template.updatedAt.replace(" ", "T")}Z`;
+  const updated = new Date(timestamp);
+  const today = new Date();
+  const isToday = updated.toDateString() === today.toDateString();
+  const date = isToday
+    ? "today"
+    : new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(updated);
+  return `Version ${template.version} · ${date}`;
+}
+
 type Props = {
   template?: Template;
   loading: boolean;
@@ -64,7 +80,12 @@ export function TemplateDetail({
         </Button>
       </section>
       <div className="grid items-stretch gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,.8fr)]">
-        <PromptPreview segments={segments} copied={copied} onCopy={onCopy} />
+        <PromptPreview
+          segments={segments}
+          copied={copied}
+          onCopy={onCopy}
+          revisionLabel={revisionLabel(template)}
+        />
         <Card className="flex overflow-hidden border-black/[.08] shadow-sm lg:h-[680px] lg:flex-col">
           <CardHeader className="border-b bg-white/60 px-6 py-4">
             <div className="flex items-center justify-between">
@@ -147,7 +168,7 @@ export function TemplateDetail({
         Recent versions
         <Separator orientation="vertical" className="mx-1 h-4" />
         <FileText className="size-4" />
-        Version 3 · today
+        {revisionLabel(template)}
       </div>
     </main>
   );

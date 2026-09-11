@@ -48,7 +48,11 @@ function App() {
 
   return (
     <PageContainer>
-      <TemplateScreen templates={templatesQuery.data} startCreating={screen === "create"} />
+      <TemplateScreen
+        templates={templatesQuery.data}
+        startCreating={screen === "create"}
+        initialTemplateId={screen === "templates" ? "clear-first-draft" : undefined}
+      />
       <Toaster position="bottom-center" />
     </PageContainer>
   );
