@@ -64,7 +64,11 @@ function mapTemplate(row: TemplateRow): Template {
 }
 
 export class D1TemplateRepository implements TemplateRepository {
-  constructor(private readonly db: D1Database) {}
+  private readonly db: D1Database;
+
+  constructor(db: D1Database) {
+    this.db = db;
+  }
 
   async list(workspaceId: string): Promise<Template[]> {
     const result = await this.db

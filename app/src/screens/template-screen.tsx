@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Header } from "@/components/header";
 import { TemplateCreator, type TemplateDraft } from "@/components/template-creator";
@@ -33,6 +34,7 @@ const emptyValues = (template?: Template) =>
   Object.fromEntries((template?.fields ?? []).map((field) => [field.key, ""]));
 
 export function TemplateScreen({ templates, startCreating = false, initialTemplateId }: Props) {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const initialTemplate =
     templates.find((template) => template.id === initialTemplateId) ?? templates[0];
@@ -91,6 +93,10 @@ export function TemplateScreen({ templates, startCreating = false, initialTempla
       setCreating(false);
       setEditing(false);
       toast.success(editing ? "Template updated" : "Template created");
+      await navigate({
+        to: "/templates/$templateId",
+        params: { templateId: savedTemplate.id },
+      });
     } catch {
       toast.error("Could not save this template");
     }
@@ -101,15 +107,11 @@ export function TemplateScreen({ templates, startCreating = false, initialTempla
       templates={templates}
       selectedTemplateId={selectedTemplateId}
       onSelectTemplate={(id) => {
-        setSelectedTemplateId(id);
-        setValues(emptyValues(templates.find((item) => item.id === id)));
-        setSegments([]);
+        void navigate({ to: "/templates/$templateId", params: { templateId: id } });
       }}
       onSignOut={() => void authClient.signOut()}
       onCreateTemplate={() => {
-        setDraft(newDraft);
-        setEditing(false);
-        setCreating(true);
+        void navigate({ to: "/templates/new" });
       }}
     />
   );
@@ -121,7 +123,12 @@ export function TemplateScreen({ templates, startCreating = false, initialTempla
         <TemplateCreator
           draft={draft}
           setDraft={setDraft}
-          onCancel={() => setCreating(false)}
+          onCancel={() =>
+            void navigate({
+              to: "/templates/$templateId",
+              params: { templateId: selectedTemplateId },
+            })
+          }
           onSave={saveTemplate}
           emptyField={emptyField}
         />

@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { Library, LogOut, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,9 +20,9 @@ export function PublicHeader({ onCreateTemplate, onOpenShelf, onSignOut }: Publi
   return (
     <header className="sticky top-0 z-10 border-b border-black/[.07] bg-[#f8f8f6]/90 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5">
-        <a className="font-semibold tracking-[-.04em]" href="/">
+        <Link className="font-semibold tracking-[-.04em]" to="/">
           Prompt Shelf
-        </a>
+        </Link>
         <nav className="flex items-center gap-2">
           {onOpenShelf ? (
             <Button variant="ghost" size="sm" aria-label="My shelf" onClick={onOpenShelf}>
@@ -78,9 +79,9 @@ export function Header({
     <header className="sticky top-0 z-10 border-b border-black/[.07] bg-[#f8f8f6]/90 backdrop-blur-xl">
       <div className="mx-auto max-w-7xl px-5">
         <div className="flex h-16 items-center justify-between">
-          <a className="font-semibold tracking-[-.04em]" href="#">
+          <Link className="font-semibold tracking-[-.04em]" to="/">
             Prompt Shelf
-          </a>
+          </Link>
           <nav className="flex items-center gap-2">
             {templateSelect(false)}
             <Button variant="outline" size="sm" onClick={onCreateTemplate}>

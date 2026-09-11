@@ -2,4 +2,7 @@ node_modules/*
 server/node_modules/*
 server/.wrangler/*
 server/.dev.vars
+app/.dev.vars
+app/.wrangler/*
+app/.env.local
 .firecrawl/*
