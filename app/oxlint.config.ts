@@ -1,6 +1,6 @@
 import { defineConfig } from "oxlint";
 export default defineConfig({
-  jsPlugins: [{ name: "anti-slop", specifier: "../tools/oxlint/anti-slop/src/index.ts" }],
+  jsPlugins: [{ name: "anti-slop", specifier: "./tools/oxlint/anti-slop/src/index.ts" }],
   rules: {
     "anti-slop/no-array-filter-map": "error",
     "anti-slop/no-reduce-accumulator-copy": "error",
