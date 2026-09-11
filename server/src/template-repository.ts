@@ -23,10 +23,10 @@ export type TemplateInput = Pick<
 >;
 
 export interface TemplateRepository {
-  list(): Promise<Template[]>;
-  find(id: string): Promise<Template | null>;
-  create(template: Template): Promise<Template>;
-  update(id: string, input: TemplateInput): Promise<Template | null>;
+  list(workspaceId: string): Promise<Template[]>;
+  find(workspaceId: string, id: string): Promise<Template | null>;
+  create(workspaceId: string, template: Template): Promise<Template>;
+  update(workspaceId: string, id: string, input: TemplateInput): Promise<Template | null>;
 }
 
 type TemplateRow = {
@@ -65,66 +65,66 @@ function mapTemplate(row: TemplateRow): Template {
 export class D1TemplateRepository implements TemplateRepository {
   constructor(private readonly db: D1Database) {}
 
-  async list(): Promise<Template[]> {
+  async list(workspaceId: string): Promise<Template[]> {
     const result = await this.db
-      .prepare(`${selectCurrentRevision} ORDER BY t.updated_at DESC`)
+      .prepare(
+        `${selectCurrentRevision} WHERE t.workspace_id = ? OR t.workspace_id IS NULL ORDER BY t.updated_at DESC`,
+      )
+      .bind(workspaceId)
       .all<TemplateRow>();
     return result.results.map(mapTemplate);
   }
 
-  async find(id: string): Promise<Template | null> {
+  async find(workspaceId: string, id: string): Promise<Template | null> {
     const row = await this.db
-      .prepare(`${selectCurrentRevision} WHERE t.id = ?`)
-      .bind(id)
+      .prepare(
+        `${selectCurrentRevision} WHERE t.id = ? AND (t.workspace_id = ? OR t.workspace_id IS NULL)`,
+      )
+      .bind(id, workspaceId)
       .first<TemplateRow>();
     return row ? mapTemplate(row) : null;
   }
 
-  async create(template: Template): Promise<Template> {
+  async create(workspaceId: string, template: Template): Promise<Template> {
     await this.db.batch([
       this.db
-        .prepare(
-          `INSERT INTO templates (id, title, description, category, current_version)
-           VALUES (?, ?, ?, ?, ?)`,
-        )
+        .prepare(`INSERT INTO templates (id, title, description, category, current_version, workspace_id)
+                  VALUES (?, ?, ?, ?, ?, ?)`)
         .bind(
           template.id,
           template.title,
           template.description,
           template.category,
           template.version,
+          workspaceId,
         ),
       this.db
-        .prepare(
-          `INSERT INTO template_revisions (template_id, version, body, fields_json)
-           VALUES (?, ?, ?, ?)`,
-        )
+        .prepare(`INSERT INTO template_revisions (template_id, version, body, fields_json)
+                  VALUES (?, ?, ?, ?)`)
         .bind(template.id, template.version, template.body, JSON.stringify(template.fields)),
     ]);
-    const created = await this.find(template.id);
+    const created = await this.find(workspaceId, template.id);
     if (!created) throw new Error("Created template could not be loaded");
     return created;
   }
 
-  async update(id: string, input: TemplateInput): Promise<Template | null> {
-    const existing = await this.find(id);
+  async update(workspaceId: string, id: string, input: TemplateInput): Promise<Template | null> {
+    const existing = await this.find(workspaceId, id);
     if (!existing) return null;
     const updated = { ...existing, ...input, version: existing.version + 1 };
-    await this.db.batch([
-      this.db
-        .prepare(
-          `INSERT INTO template_revisions (template_id, version, body, fields_json)
-           VALUES (?, ?, ?, ?)`,
-        )
-        .bind(id, updated.version, updated.body, JSON.stringify(updated.fields)),
-      this.db
-        .prepare(
-          `UPDATE templates
-           SET title = ?, description = ?, category = ?, current_version = ?, updated_at = CURRENT_TIMESTAMP
-           WHERE id = ?`,
-        )
-        .bind(updated.title, updated.description, updated.category, updated.version, id),
-    ]);
-    return this.find(id);
+    const result = await this.db
+      .prepare(`UPDATE templates
+                SET title = ?, description = ?, category = ?, current_version = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ? AND workspace_id = ?`)
+      .bind(updated.title, updated.description, updated.category, updated.version, id, workspaceId)
+      .run();
+    if (!result.meta.changes) return null;
+    await this.db
+      .prepare(
+        `INSERT INTO template_revisions (template_id, version, body, fields_json) VALUES (?, ?, ?, ?)`,
+      )
+      .bind(id, updated.version, updated.body, JSON.stringify(updated.fields))
+      .run();
+    return this.find(workspaceId, id);
   }
 }

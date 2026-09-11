@@ -5,6 +5,7 @@ import { Header } from "@/components/header";
 import { TemplateCreator, type TemplateDraft } from "@/components/template-creator";
 import { TemplateDetail } from "@/components/template-detail";
 import { api, type Template, type TemplateField } from "@/lib/api";
+import { authClient } from "@/lib/auth";
 
 type Props = {
   templates: Template[];
@@ -104,6 +105,7 @@ export function TemplateScreen({ templates, startCreating = false, initialTempla
         setValues(emptyValues(templates.find((item) => item.id === id)));
         setSegments([]);
       }}
+      onSignOut={() => void authClient.signOut()}
       onCreateTemplate={() => {
         setDraft(newDraft);
         setEditing(false);

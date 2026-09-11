@@ -14,6 +14,7 @@ type Props = {
   selectedTemplateId: string;
   onSelectTemplate: (id: string) => void;
   onCreateTemplate: () => void;
+  onSignOut: () => void;
 };
 
 export function Header({
@@ -21,6 +22,7 @@ export function Header({
   selectedTemplateId,
   onSelectTemplate,
   onCreateTemplate,
+  onSignOut,
 }: Props) {
   const templateSelect = (mobile: boolean) => (
     <Select value={selectedTemplateId} onValueChange={(value) => value && onSelectTemplate(value)}>
@@ -53,7 +55,8 @@ export function Header({
               className="hidden sm:inline-flex"
               variant="ghost"
               size="icon"
-              aria-label="Account"
+              aria-label="Sign out"
+              onClick={onSignOut}
             >
               <span className="text-xs font-semibold">SV</span>
             </Button>

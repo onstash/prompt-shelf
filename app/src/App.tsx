@@ -3,13 +3,37 @@ import { useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { PageContainer } from "@/containers/page-container";
 import { api } from "@/lib/api";
+import { authClient } from "@/lib/auth";
+import { AuthScreen } from "@/screens/auth-screen";
 import { TemplateScreen } from "@/screens/template-screen";
 import { WelcomeScreen } from "@/screens/welcome-screen";
 import "./index.css";
 
 function App() {
   const [screen, setScreen] = useState<"welcome" | "templates" | "create">("welcome");
-  const templatesQuery = useQuery({ queryKey: ["templates"], queryFn: api.listTemplates });
+  const session = authClient.useSession();
+  const templatesQuery = useQuery({
+    queryKey: ["templates"],
+    queryFn: api.listTemplates,
+    enabled: Boolean(session.data),
+  });
+
+  if (session.isPending) {
+    return (
+      <PageContainer>
+        <main className="sr-only">Loading session…</main>
+      </PageContainer>
+    );
+  }
+
+  if (!session.data) {
+    return (
+      <PageContainer>
+        <AuthScreen />
+        <Toaster position="bottom-center" />
+      </PageContainer>
+    );
+  }
 
   if (templatesQuery.isPending) {
     return (
