@@ -10,7 +10,9 @@ Accepted
 The product should remain free while validating whether businesses will pay. The deployment target is Cloudflare. The initial data model is small and relational, but does not yet require advanced PostgreSQL features.
 
 ## Decision
-Use Cloudflare Workers/Pages with Cloudflare D1 for the MVP. Keep database access behind repository interfaces so Neon Postgres can be introduced later if scale or SQL requirements justify it.
+Use Cloudflare Workers with Cloudflare D1 for the MVP. Keep database access behind repository interfaces so Neon Postgres can be introduced later if scale or SQL requirements justify it.
+
+ADR-0007 supersedes the original split Workers/Pages deployment shape by consolidating the TanStack Start application and D1 access into one Worker.
 
 ## Alternatives considered
 

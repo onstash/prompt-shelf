@@ -7,7 +7,7 @@ Accepted
 2025-09-09
 
 ## Context
-Relay needs a reusable template with a synchronized form and highlighted prompt preview. The prompt must remain portable, safe to render, and versionable.
+Prompt Shelf needs a reusable template with a synchronized form and highlighted prompt preview. The prompt must remain portable, safe to render, and versionable.
 
 ## Decision
 Store each template revision as an immutable prompt body plus an ordered field schema. Store submitted values separately. Compile the body at runtime using `{{field_key}}` tokens. Return plain text and structured `STATIC`/`VALUE` segments; render `<mark>` only in the frontend.

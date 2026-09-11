@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { PublicHeader } from "@/components/header";
 import { Toaster } from "@/components/ui/sonner";
 import { PageContainer } from "@/containers/page-container";
@@ -13,14 +13,13 @@ import "./index.css";
 
 type Screen = "welcome" | "example" | "templates" | "create";
 
-function initialScreen(): Screen {
-  return new URLSearchParams(window.location.search).get("intent") === "create"
-    ? "create"
-    : "welcome";
-}
+type Props = {
+  initialScreen?: Screen;
+  initialTemplateId?: string;
+};
 
-function App() {
-  const [screen, setScreen] = useState<Screen>(initialScreen);
+function App({ initialScreen: screen = "welcome", initialTemplateId }: Props) {
+  const navigate = useNavigate();
   const session = authClient.useSession();
   const templatesQuery = useQuery({
     queryKey: ["templates"],
@@ -28,24 +27,14 @@ function App() {
     enabled: Boolean(session.data),
   });
 
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    if (!url.searchParams.has("intent")) return;
-    url.searchParams.delete("intent");
-    window.history.replaceState({}, "", url);
-  }, []);
-
   const beginCreating = () => {
-    const url = new URL(window.location.href);
-    url.searchParams.set("intent", "create");
-    window.history.replaceState({}, "", url);
-    setScreen("create");
+    void navigate({ to: "/templates/new" });
   };
 
   const publicHeader = (
     <PublicHeader
       onCreateTemplate={beginCreating}
-      onOpenShelf={session.data ? () => setScreen("templates") : undefined}
+      onOpenShelf={session.data ? () => void navigate({ to: "/templates" }) : undefined}
       onSignOut={session.data ? () => void authClient.signOut() : undefined}
     />
   );
@@ -54,7 +43,15 @@ function App() {
     return (
       <PageContainer>
         {publicHeader}
-        <WelcomeScreen onCreate={beginCreating} onExample={() => setScreen("example")} />
+        <WelcomeScreen
+          onCreate={beginCreating}
+          onExample={() =>
+            void navigate({
+              to: "/examples/$exampleId",
+              params: { exampleId: "clear-first-draft" },
+            })
+          }
+        />
         <Toaster position="bottom-center" />
       </PageContainer>
     );
@@ -64,7 +61,7 @@ function App() {
     return (
       <PageContainer>
         {publicHeader}
-        <ExampleScreen onBack={() => setScreen("welcome")} onUseExample={beginCreating} />
+        <ExampleScreen onBack={() => void navigate({ to: "/" })} onUseExample={beginCreating} />
         <Toaster position="bottom-center" />
       </PageContainer>
     );
@@ -116,7 +113,7 @@ function App() {
       <TemplateScreen
         templates={templatesQuery.data}
         startCreating={screen === "create"}
-        initialTemplateId={screen === "templates" ? "clear-first-draft" : undefined}
+        initialTemplateId={initialTemplateId}
       />
       <Toaster position="bottom-center" />
     </PageContainer>

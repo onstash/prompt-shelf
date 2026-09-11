@@ -7,7 +7,7 @@ Accepted
 2025-09-09
 
 ## Context
-Relay needs to learn whether templates are useful without paying for an analytics platform or collecting user prompt content.
+Prompt Shelf needs to learn whether templates are useful without paying for an analytics platform or collecting user prompt content.
 
 ## Decision
 Use Cloudflare Web Analytics for anonymous website and performance metrics. Store a minimal first-party product-event table in D1 for events such as `template_opened`, `form_started`, `prompt_copied`, `preset_saved`, `template_created`, and `workspace_invited`.

@@ -2,13 +2,17 @@
   "private": true,
   "scripts": {
     "prototype": "python3 -m http.server 4173",
+    "dev": "npm --prefix app run dev",
     "dev:frontend": "npm --prefix app run dev",
-    "dev:backend": "npm --prefix server run dev",
+    "dev:backend": "npm --prefix app run dev",
+    "build": "npm --prefix app run build",
     "build:frontend": "npm --prefix app run build",
-    "deploy": "npm run build:frontend && npm --prefix server run deploy",
-    "lint": "npm --prefix app run lint && npm --prefix server run lint",
-    "format": "npm --prefix app run format && npm --prefix server run format",
-    "format:check": "npm --prefix app run format:check && npm --prefix server run format:check",
+    "deploy": "npm --prefix app run deploy",
+    "db:migrate:local": "npm --prefix app run db:migrate:local",
+    "db:migrate:remote": "npm --prefix app run db:migrate:remote",
+    "lint": "npm --prefix app run lint",
+    "format": "npm --prefix app run format",
+    "format:check": "npm --prefix app run format:check",
     "prepare": "lefthook install"
   },
   "devDependencies": {
