@@ -15,13 +15,13 @@ import { Textarea } from "@/components/ui/textarea";
 import type { Template } from "@/lib/api";
 import { PromptPreview } from "@/components/prompt-preview";
 
-type Values = { idea: string; audience: string; tone: string; length: string };
+type Values = Record<string, string>;
 type Props = {
   template?: Template;
   loading: boolean;
   segments: Array<{ type: "static" | "value"; text: string; key?: string }>;
   values: Values;
-  update: (key: keyof Values, value: string) => void;
+  update: (key: string, value: string) => void;
   copied: boolean;
   onCopy: () => void;
   saved: boolean;
@@ -70,73 +70,61 @@ export function TemplateDetail({
           </CardHeader>
           <CardContent className="bg-white px-6 py-6">
             <div className="flex flex-col gap-5">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="idea">
-                  What are you writing?{" "}
-                  <span className="text-xs font-normal text-muted-foreground">Required</span>
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  The rough idea or message you want to express.
-                </p>
-                <Textarea
-                  id="idea"
-                  value={values.idea}
-                  onChange={(e) => update("idea", e.target.value)}
-                  placeholder="e.g. An update about our product launch"
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="audience">
-                  Who is it for?{" "}
-                  <span className="text-xs font-normal text-muted-foreground">Required</span>
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  Name the reader and what they already know.
-                </p>
-                <Input
-                  id="audience"
-                  value={values.audience}
-                  onChange={(e) => update("audience", e.target.value)}
-                  placeholder="e.g. Existing customers"
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label>Tone</Label>
-                <Select value={values.tone} onValueChange={(v) => update("tone", v ?? "clear")}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="clear">Clear and conversational</SelectItem>
-                    <SelectItem value="warm">Warm and encouraging</SelectItem>
-                    <SelectItem value="direct">Direct and confident</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label>Length</Label>
-                <Select value={values.length} onValueChange={(v) => update("length", v ?? "short")}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="short">Short and skimmable</SelectItem>
-                    <SelectItem value="medium">A few useful paragraphs</SelectItem>
-                    <SelectItem value="long">Detailed and thorough</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {(template?.fields ?? []).map((field) => (
+                <div className="flex flex-col gap-2" key={field.key}>
+                  <Label htmlFor={`field-${field.key}`}>
+                    {field.label}
+                    {field.required && (
+                      <span className="text-xs font-normal text-muted-foreground"> Required</span>
+                    )}
+                  </Label>
+                  {field.type === "textarea" ? (
+                    <Textarea
+                      id={`field-${field.key}`}
+                      value={values[field.key] ?? ""}
+                      onChange={(e) => update(field.key, e.target.value)}
+                    />
+                  ) : field.type === "select" ? (
+                    <Select
+                      value={values[field.key] ?? ""}
+                      onValueChange={(value) => value && update(field.key, value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose an option" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(field.options ?? []).map((option) => (
+                          <SelectItem key={option} value={option}>
+                            {option}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      id={`field-${field.key}`}
+                      type={field.type === "number" ? "number" : "text"}
+                      value={values[field.key] ?? ""}
+                      onChange={(e) => update(field.key, e.target.value)}
+                    />
+                  )}
+                </div>
+              ))}
             </div>
             <Separator className="my-6" />
             <div className="flex items-center justify-between gap-3">
               <span
                 className={
-                  values.idea.trim() && values.audience.trim()
+                  (template?.fields ?? [])
+                    .filter((field) => field.required)
+                    .every((field) => values[field.key]?.trim())
                     ? "text-xs text-emerald-700"
                     : "text-xs text-muted-foreground"
                 }
               >
-                {values.idea.trim() && values.audience.trim()
+                {(template?.fields ?? [])
+                  .filter((field) => field.required)
+                  .every((field) => values[field.key]?.trim())
                   ? "Ready to copy"
                   : "Start with the required fields"}
               </span>

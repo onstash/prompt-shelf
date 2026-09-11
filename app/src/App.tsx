@@ -2,6 +2,13 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { TemplateCreator } from "@/components/template-creator";
@@ -9,7 +16,7 @@ import { TemplateDetail } from "@/components/template-detail";
 import { api, type FieldType, type TemplateField } from "@/lib/api";
 import "./index.css";
 
-type Values = { idea: string; audience: string; tone: string; length: string };
+type Values = Record<string, string>;
 const initial: Values = { idea: "", audience: "", tone: "clear", length: "short" };
 const emptyField = (): TemplateField => ({
   key: "",
@@ -20,20 +27,22 @@ const emptyField = (): TemplateField => ({
 });
 
 function App() {
+  const [selectedTemplateId, setSelectedTemplateId] = useState("clear-first-draft");
   const [values, setValues] = useState(initial);
+  const templatesQuery = useQuery({ queryKey: ["templates"], queryFn: api.listTemplates });
   const [compiledSegments, setCompiledSegments] = useState<
     Array<{ type: "static" | "value"; text: string; key?: string }>
   >([]);
   const templateQuery = useQuery({
-    queryKey: ["templates", "clear-first-draft"],
-    queryFn: () => api.getTemplate("clear-first-draft"),
+    queryKey: ["templates", selectedTemplateId],
+    queryFn: () => api.getTemplate(selectedTemplateId),
   });
   const template = templateQuery.data;
   const loadingTemplate = templateQuery.isLoading;
   const compileMutation = useMutation({
     mutationFn: (previewValues?: Record<string, string>) =>
       api.compileTemplate(
-        "clear-first-draft",
+        selectedTemplateId,
         previewValues ?? {
           ...values,
           tone: tone ?? "",
@@ -84,7 +93,7 @@ function App() {
       // SAFETY: every initial field satisfies the TemplateField contract.
     ] as TemplateField[],
   });
-  const update = (key: keyof Values, value: string) =>
+  const update = (key: string, value: string) =>
     setValues((current) => ({ ...current, [key]: value }));
   const ready = values.idea.trim() !== "" && values.audience.trim() !== "";
   const tone = {
@@ -137,13 +146,26 @@ function App() {
             Prompt Shelf
           </a>
           <nav className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="hidden text-muted-foreground sm:inline-flex"
+            <Select
+              value={selectedTemplateId}
+              onValueChange={(value) => {
+                if (!value) return;
+                setSelectedTemplateId(value);
+                setValues(initial);
+                setCompiledSegments([]);
+              }}
             >
-              My shelf
-            </Button>
+              <SelectTrigger className="hidden w-auto text-muted-foreground sm:inline-flex">
+                <SelectValue placeholder="Select template" />
+              </SelectTrigger>
+              <SelectContent>
+                {(templatesQuery.data ?? []).map((item) => (
+                  <SelectItem key={item.id} value={item.id}>
+                    {item.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Button variant="outline" size="sm" onClick={() => setCreating(true)}>
               <Plus data-icon="inline-start" /> New template
             </Button>

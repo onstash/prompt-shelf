@@ -2,6 +2,13 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { FieldType, TemplateField } from "@/lib/api";
 
 type Draft = { fields: TemplateField[] };
@@ -57,22 +64,26 @@ export function TemplateFieldEditor({ draft, setDraft, emptyField }: Props) {
             />
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <select
-              aria-label={`Field ${index + 1} type`}
-              className="h-9 rounded-md border bg-background px-3 text-sm"
+            <Select
               value={field.type}
-              onChange={(e) => {
+              onValueChange={(value) => {
+                if (!value) return;
                 const fields = [...draft.fields];
-                // SAFETY: the select options are limited to FieldType values.
-                fields[index] = { ...field, type: e.target.value as FieldType };
+                // SAFETY: SelectItem values are constrained to FieldType literals below.
+                fields[index] = { ...field, type: value as FieldType };
                 setDraft({ ...draft, fields });
               }}
             >
-              <option value="text">Text</option>
-              <option value="textarea">Textarea</option>
-              <option value="select">Select</option>
-              <option value="number">Number</option>
-            </select>
+              <SelectTrigger aria-label={`Field ${index + 1} type`} className="w-32">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="text">Text</SelectItem>
+                <SelectItem value="textarea">Textarea</SelectItem>
+                <SelectItem value="select">Select</SelectItem>
+                <SelectItem value="number">Number</SelectItem>
+              </SelectContent>
+            </Select>
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
