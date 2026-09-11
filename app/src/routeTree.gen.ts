@@ -8,190 +8,190 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from "./routes/__root";
-import { Route as IndexRouteImport } from "./routes/index";
-import { Route as HealthRouteImport } from "./routes/health";
-import { Route as SignInRouteImport } from "./routes/sign-in";
-import { Route as ApiSplatRouteImport } from "./routes/api.$";
-import { Route as ExamplesExampleIdRouteImport } from "./routes/examples.$exampleId";
-import { Route as TemplatesIndexRouteImport } from "./routes/templates.index";
-import { Route as TemplatesTemplateIdRouteImport } from "./routes/templates.$templateId";
-import { Route as TemplatesNewRouteImport } from "./routes/templates.new";
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as HealthRouteImport } from './routes/health'
+import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as ApiSplatRouteImport } from './routes/api.$'
+import { Route as ExamplesExampleIdRouteImport } from './routes/examples.$exampleId'
+import { Route as TemplatesIndexRouteImport } from './routes/templates.index'
+import { Route as TemplatesTemplateIdRouteImport } from './routes/templates.$templateId'
+import { Route as TemplatesNewRouteImport } from './routes/templates.new'
 
 const IndexRoute = IndexRouteImport.update({
-  id: "/",
-  path: "/",
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const HealthRoute = HealthRouteImport.update({
-  id: "/health",
-  path: "/health",
+  id: '/health',
+  path: '/health',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const SignInRoute = SignInRouteImport.update({
-  id: "/sign-in",
-  path: "/sign-in",
+  id: '/sign-in',
+  path: '/sign-in',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ApiSplatRoute = ApiSplatRouteImport.update({
-  id: "/api/$",
-  path: "/api/$",
+  id: '/api/$',
+  path: '/api/$',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ExamplesExampleIdRoute = ExamplesExampleIdRouteImport.update({
-  id: "/examples/$exampleId",
-  path: "/examples/$exampleId",
+  id: '/examples/$exampleId',
+  path: '/examples/$exampleId',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const TemplatesIndexRoute = TemplatesIndexRouteImport.update({
-  id: "/templates/",
-  path: "/templates/",
+  id: '/templates/',
+  path: '/templates/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const TemplatesTemplateIdRoute = TemplatesTemplateIdRouteImport.update({
-  id: "/templates/$templateId",
-  path: "/templates/$templateId",
+  id: '/templates/$templateId',
+  path: '/templates/$templateId',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const TemplatesNewRoute = TemplatesNewRouteImport.update({
-  id: "/templates/new",
-  path: "/templates/new",
+  id: '/templates/new',
+  path: '/templates/new',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 
 export interface FileRoutesByFullPath {
-  "/": typeof IndexRoute;
-  "/health": typeof HealthRoute;
-  "/sign-in": typeof SignInRoute;
-  "/api/$": typeof ApiSplatRoute;
-  "/examples/$exampleId": typeof ExamplesExampleIdRoute;
-  "/templates/$templateId": typeof TemplatesTemplateIdRoute;
-  "/templates/new": typeof TemplatesNewRoute;
-  "/templates/": typeof TemplatesIndexRoute;
+  '/': typeof IndexRoute
+  '/health': typeof HealthRoute
+  '/sign-in': typeof SignInRoute
+  '/api/$': typeof ApiSplatRoute
+  '/examples/$exampleId': typeof ExamplesExampleIdRoute
+  '/templates/$templateId': typeof TemplatesTemplateIdRoute
+  '/templates/new': typeof TemplatesNewRoute
+  '/templates/': typeof TemplatesIndexRoute
 }
 export interface FileRoutesByTo {
-  "/": typeof IndexRoute;
-  "/health": typeof HealthRoute;
-  "/sign-in": typeof SignInRoute;
-  "/api/$": typeof ApiSplatRoute;
-  "/examples/$exampleId": typeof ExamplesExampleIdRoute;
-  "/templates/$templateId": typeof TemplatesTemplateIdRoute;
-  "/templates/new": typeof TemplatesNewRoute;
-  "/templates": typeof TemplatesIndexRoute;
+  '/': typeof IndexRoute
+  '/health': typeof HealthRoute
+  '/sign-in': typeof SignInRoute
+  '/api/$': typeof ApiSplatRoute
+  '/examples/$exampleId': typeof ExamplesExampleIdRoute
+  '/templates/$templateId': typeof TemplatesTemplateIdRoute
+  '/templates/new': typeof TemplatesNewRoute
+  '/templates': typeof TemplatesIndexRoute
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport;
-  "/": typeof IndexRoute;
-  "/health": typeof HealthRoute;
-  "/sign-in": typeof SignInRoute;
-  "/api/$": typeof ApiSplatRoute;
-  "/examples/$exampleId": typeof ExamplesExampleIdRoute;
-  "/templates/$templateId": typeof TemplatesTemplateIdRoute;
-  "/templates/new": typeof TemplatesNewRoute;
-  "/templates/": typeof TemplatesIndexRoute;
+  __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/health': typeof HealthRoute
+  '/sign-in': typeof SignInRoute
+  '/api/$': typeof ApiSplatRoute
+  '/examples/$exampleId': typeof ExamplesExampleIdRoute
+  '/templates/$templateId': typeof TemplatesTemplateIdRoute
+  '/templates/new': typeof TemplatesNewRoute
+  '/templates/': typeof TemplatesIndexRoute
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath;
+  fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | "/"
-    | "/health"
-    | "/sign-in"
-    | "/api/$"
-    | "/examples/$exampleId"
-    | "/templates/$templateId"
-    | "/templates/new"
-    | "/templates/";
-  fileRoutesByTo: FileRoutesByTo;
+    | '/'
+    | '/health'
+    | '/sign-in'
+    | '/api/$'
+    | '/examples/$exampleId'
+    | '/templates/$templateId'
+    | '/templates/new'
+    | '/templates/'
+  fileRoutesByTo: FileRoutesByTo
   to:
-    | "/"
-    | "/health"
-    | "/sign-in"
-    | "/api/$"
-    | "/examples/$exampleId"
-    | "/templates/$templateId"
-    | "/templates/new"
-    | "/templates";
+    | '/'
+    | '/health'
+    | '/sign-in'
+    | '/api/$'
+    | '/examples/$exampleId'
+    | '/templates/$templateId'
+    | '/templates/new'
+    | '/templates'
   id:
-    | "__root__"
-    | "/"
-    | "/health"
-    | "/sign-in"
-    | "/api/$"
-    | "/examples/$exampleId"
-    | "/templates/$templateId"
-    | "/templates/new"
-    | "/templates/";
-  fileRoutesById: FileRoutesById;
+    | '__root__'
+    | '/'
+    | '/health'
+    | '/sign-in'
+    | '/api/$'
+    | '/examples/$exampleId'
+    | '/templates/$templateId'
+    | '/templates/new'
+    | '/templates/'
+  fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute;
-  HealthRoute: typeof HealthRoute;
-  SignInRoute: typeof SignInRoute;
-  ApiSplatRoute: typeof ApiSplatRoute;
-  ExamplesExampleIdRoute: typeof ExamplesExampleIdRoute;
-  TemplatesTemplateIdRoute: typeof TemplatesTemplateIdRoute;
-  TemplatesNewRoute: typeof TemplatesNewRoute;
-  TemplatesIndexRoute: typeof TemplatesIndexRoute;
+  IndexRoute: typeof IndexRoute
+  HealthRoute: typeof HealthRoute
+  SignInRoute: typeof SignInRoute
+  ApiSplatRoute: typeof ApiSplatRoute
+  ExamplesExampleIdRoute: typeof ExamplesExampleIdRoute
+  TemplatesTemplateIdRoute: typeof TemplatesTemplateIdRoute
+  TemplatesNewRoute: typeof TemplatesNewRoute
+  TemplatesIndexRoute: typeof TemplatesIndexRoute
 }
 
-declare module "@tanstack/react-router" {
+declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    "/": {
-      id: "/";
-      path: "/";
-      fullPath: "/";
-      preLoaderRoute: typeof IndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/health": {
-      id: "/health";
-      path: "/health";
-      fullPath: "/health";
-      preLoaderRoute: typeof HealthRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/sign-in": {
-      id: "/sign-in";
-      path: "/sign-in";
-      fullPath: "/sign-in";
-      preLoaderRoute: typeof SignInRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/api/$": {
-      id: "/api/$";
-      path: "/api/$";
-      fullPath: "/api/$";
-      preLoaderRoute: typeof ApiSplatRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/examples/$exampleId": {
-      id: "/examples/$exampleId";
-      path: "/examples/$exampleId";
-      fullPath: "/examples/$exampleId";
-      preLoaderRoute: typeof ExamplesExampleIdRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/templates/": {
-      id: "/templates/";
-      path: "/templates";
-      fullPath: "/templates/";
-      preLoaderRoute: typeof TemplatesIndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/templates/$templateId": {
-      id: "/templates/$templateId";
-      path: "/templates/$templateId";
-      fullPath: "/templates/$templateId";
-      preLoaderRoute: typeof TemplatesTemplateIdRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/templates/new": {
-      id: "/templates/new";
-      path: "/templates/new";
-      fullPath: "/templates/new";
-      preLoaderRoute: typeof TemplatesNewRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/health': {
+      id: '/health'
+      path: '/health'
+      fullPath: '/health'
+      preLoaderRoute: typeof HealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-in': {
+      id: '/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof SignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/$': {
+      id: '/api/$'
+      path: '/api/$'
+      fullPath: '/api/$'
+      preLoaderRoute: typeof ApiSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/examples/$exampleId': {
+      id: '/examples/$exampleId'
+      path: '/examples/$exampleId'
+      fullPath: '/examples/$exampleId'
+      preLoaderRoute: typeof ExamplesExampleIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/templates/': {
+      id: '/templates/'
+      path: '/templates'
+      fullPath: '/templates/'
+      preLoaderRoute: typeof TemplatesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/templates/$templateId': {
+      id: '/templates/$templateId'
+      path: '/templates/$templateId'
+      fullPath: '/templates/$templateId'
+      preLoaderRoute: typeof TemplatesTemplateIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/templates/new': {
+      id: '/templates/new'
+      path: '/templates/new'
+      fullPath: '/templates/new'
+      preLoaderRoute: typeof TemplatesNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -204,16 +204,16 @@ const rootRouteChildren: RootRouteChildren = {
   TemplatesTemplateIdRoute: TemplatesTemplateIdRoute,
   TemplatesNewRoute: TemplatesNewRoute,
   TemplatesIndexRoute: TemplatesIndexRoute,
-};
+}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>();
+  ._addFileTypes<FileRouteTypes>()
 
-import type { getRouter } from "./router.tsx";
-import type { createStart } from "@tanstack/react-start";
-declare module "@tanstack/react-start" {
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
   interface Register {
-    ssr: true;
-    router: Awaited<ReturnType<typeof getRouter>>;
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
   }
 }

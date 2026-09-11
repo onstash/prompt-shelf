@@ -4,5 +4,6 @@ server/.wrangler/*
 server/.dev.vars
 app/.dev.vars
 app/.wrangler/*
+app/.tanstack/*
 app/.env.local
 .firecrawl/*
