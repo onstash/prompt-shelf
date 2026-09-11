@@ -22,6 +22,22 @@ type Props = {
 };
 
 export function TemplateCreator({ draft, setDraft, onCancel, onSave, emptyField }: Props) {
+  const updateBody = (body: string) => {
+    const keys = [...body.matchAll(/{{\s*([\w-]+)\s*}}/g)].map((match) => match[1]);
+    const uniqueKeys = [...new Set(keys)];
+    const fields = uniqueKeys.map((key) => {
+      const existing = draft.fields.find((field) => field.key === key);
+      if (existing) return existing;
+      return {
+        ...emptyField(),
+        key,
+        label: key.replace(/[-_]+/g, " ").replace(/\b\w/g, (character) => character.toUpperCase()),
+        required: true,
+      };
+    });
+    setDraft({ ...draft, body, fields });
+  };
+
   return (
     <main className="mx-auto max-w-[760px] px-5 py-10">
       <button className="mb-8 text-sm text-muted-foreground" onClick={onCancel}>
@@ -68,6 +84,14 @@ export function TemplateCreator({ draft, setDraft, onCancel, onSave, emptyField 
               value={draft.body}
               onChange={(e) => setDraft({ ...draft, body: e.target.value })}
             />
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs text-muted-foreground">
+                Variables are added to the form when you parse the prompt.
+              </p>
+              <Button type="button" variant="outline" onClick={() => updateBody(draft.body)}>
+                Parse template
+              </Button>
+            </div>
           </div>
           <Separator />
           <TemplateFieldEditor
