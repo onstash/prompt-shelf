@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import App from "@/App";
+import { ShelfScreen } from "@/screens/shelf-screen";
 
 export const Route = createFileRoute("/templates/")({ component: TemplatesRoute });
 
 function TemplatesRoute() {
-  return <App initialScreen="templates" />;
+  return <ShelfScreen />;
 }

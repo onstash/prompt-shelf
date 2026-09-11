@@ -1,5 +1,7 @@
-import { createFileRoute, notFound } from "@tanstack/react-router";
-import App from "@/App";
+import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
+import { PublicPageHeader } from "@/components/public-page-header";
+import { PageContainer } from "@/containers/page-container";
+import { ExampleScreen } from "@/screens/example-screen";
 
 export const Route = createFileRoute("/examples/$exampleId")({
   beforeLoad: ({ params }) => {
@@ -9,5 +11,15 @@ export const Route = createFileRoute("/examples/$exampleId")({
 });
 
 function ExampleRoute() {
-  return <App initialScreen="example" />;
+  const navigate = useNavigate();
+
+  return (
+    <PageContainer>
+      <PublicPageHeader />
+      <ExampleScreen
+        onBack={() => void navigate({ to: "/" })}
+        onUseExample={() => void navigate({ to: "/templates/new" })}
+      />
+    </PageContainer>
+  );
 }
