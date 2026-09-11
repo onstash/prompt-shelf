@@ -33,6 +33,20 @@ app.use("/api/templates/*", async (c, next) => {
 });
 app.get("/health", (c) => c.json({ ok: true, service: "prompt-shelf-api" }));
 
+app.get("/api/examples/:id", async (c) => {
+  const repository = new D1TemplateRepository(c.env.DB);
+  const example = await repository.findSystemExample(c.req.param("id"));
+  return example ? c.json(example) : c.json({ error: "Example not found" }, 404);
+});
+
+app.post("/api/examples/:id/compile", async (c) => {
+  const repository = new D1TemplateRepository(c.env.DB);
+  const example = await repository.findSystemExample(c.req.param("id"));
+  if (!example) return c.json({ error: "Example not found" }, 404);
+  const values = await c.req.json<Record<string, string>>();
+  return c.json(compile(example, values));
+});
+
 app.get("/api/templates", async (c) => {
   const repository = new D1TemplateRepository(c.env.DB);
   return c.json(await repository.list(c.get("workspaceId")));
@@ -113,5 +127,21 @@ app.post("/api/templates/:id/compile", async (c) => {
     segments.push({ type: "static", text: template.body.slice(last) });
   return c.json({ text: segments.map((segment) => segment.text).join(""), segments });
 });
+
+function compile(template: Template, values: Record<string, string>) {
+  const segments: { type: "static" | "value"; text: string; key?: string }[] = [];
+  let last = 0;
+  const token = /{{\s*([\w-]+)\s*}}/g;
+  let match: RegExpExecArray | null;
+  while ((match = token.exec(template.body))) {
+    if (match.index > last)
+      segments.push({ type: "static", text: template.body.slice(last, match.index) });
+    segments.push({ type: "value", key: match[1], text: values[match[1]] ?? "" });
+    last = match.index + match[0].length;
+  }
+  if (last < template.body.length)
+    segments.push({ type: "static", text: template.body.slice(last) });
+  return { text: segments.map((segment) => segment.text).join(""), segments };
+}
 
 export default app;

@@ -25,6 +25,7 @@ export type TemplateInput = Pick<
 export interface TemplateRepository {
   list(workspaceId: string): Promise<Template[]>;
   find(workspaceId: string, id: string): Promise<Template | null>;
+  findSystemExample(id: string): Promise<Template | null>;
   create(workspaceId: string, template: Template): Promise<Template>;
   update(workspaceId: string, id: string, input: TemplateInput): Promise<Template | null>;
 }
@@ -73,6 +74,14 @@ export class D1TemplateRepository implements TemplateRepository {
       .bind(workspaceId)
       .all<TemplateRow>();
     return result.results.map(mapTemplate);
+  }
+
+  async findSystemExample(id: string): Promise<Template | null> {
+    const row = await this.db
+      .prepare(`${selectCurrentRevision} WHERE t.id = ? AND t.workspace_id IS NULL`)
+      .bind(id)
+      .first<TemplateRow>();
+    return row ? mapTemplate(row) : null;
   }
 
   async find(workspaceId: string, id: string): Promise<Template | null> {

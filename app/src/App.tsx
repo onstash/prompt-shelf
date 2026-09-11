@@ -5,18 +5,43 @@ import { PageContainer } from "@/containers/page-container";
 import { api } from "@/lib/api";
 import { authClient } from "@/lib/auth";
 import { AuthScreen } from "@/screens/auth-screen";
+import { ExampleScreen } from "@/screens/example-screen";
 import { TemplateScreen } from "@/screens/template-screen";
 import { WelcomeScreen } from "@/screens/welcome-screen";
 import "./index.css";
 
 function App() {
-  const [screen, setScreen] = useState<"welcome" | "templates" | "create">("welcome");
+  const [screen, setScreen] = useState<"welcome" | "example" | "templates" | "create">("welcome");
   const session = authClient.useSession();
   const templatesQuery = useQuery({
     queryKey: ["templates"],
     queryFn: api.listTemplates,
     enabled: Boolean(session.data),
   });
+
+  if (screen === "welcome") {
+    return (
+      <PageContainer>
+        <WelcomeScreen
+          onCreate={() => setScreen("create")}
+          onExample={() => setScreen("example")}
+        />
+        <Toaster position="bottom-center" />
+      </PageContainer>
+    );
+  }
+
+  if (screen === "example") {
+    return (
+      <PageContainer>
+        <ExampleScreen
+          onBack={() => setScreen("welcome")}
+          onUseExample={() => setScreen("create")}
+        />
+        <Toaster position="bottom-center" />
+      </PageContainer>
+    );
+  }
 
   if (session.isPending) {
     return (
@@ -53,18 +78,6 @@ function App() {
           <h1 className="text-2xl font-semibold">Could not load Prompt Shelf</h1>
           <p className="mt-2 text-muted-foreground">Start the local API, then refresh this page.</p>
         </main>
-        <Toaster position="bottom-center" />
-      </PageContainer>
-    );
-  }
-
-  if (screen === "welcome") {
-    return (
-      <PageContainer>
-        <WelcomeScreen
-          onCreate={() => setScreen("create")}
-          onExample={() => setScreen("templates")}
-        />
         <Toaster position="bottom-center" />
       </PageContainer>
     );

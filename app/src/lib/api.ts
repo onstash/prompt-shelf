@@ -1,4 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8787";
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ??
+  (import.meta.env.DEV ? "http://localhost:8787" : window.location.origin);
 
 export type FieldType = "text" | "textarea" | "select" | "number";
 export type TemplateField = {
@@ -64,6 +66,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  getExample: (id: string) => request<Template>(`/api/examples/${id}`),
+  compileExample: (id: string, values: Record<string, string>) =>
+    request<CompileResult>(`/api/examples/${id}/compile`, {
+      method: "POST",
+      body: JSON.stringify(values),
+    }),
   listTemplates: () => request<Template[]>("/api/templates"),
   getTemplate: (id: string) => request<Template>(`/api/templates/${id}`),
   compileTemplate: (id: string, values: Record<string, string>) =>

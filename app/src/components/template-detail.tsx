@@ -43,6 +43,7 @@ type Props = {
   saved: boolean;
   onSavePreset: () => void;
   onEdit: () => void;
+  isExample?: boolean;
 };
 
 export function TemplateDetail({
@@ -56,11 +57,12 @@ export function TemplateDetail({
   saved,
   onSavePreset,
   onEdit,
+  isExample = false,
 }: Props) {
   return (
     <main className="mx-auto max-w-7xl px-5 py-10">
       <div className="mb-8 flex items-center gap-2 text-sm text-muted-foreground">
-        <span>My shelf</span>
+        <span>{isExample ? "Examples" : "My shelf"}</span>
         <span>/</span>
         <span>Writing</span>
       </div>
@@ -76,7 +78,7 @@ export function TemplateDetail({
             "Turn a rough idea into a clear, useful first draft without losing your own voice."}
         </p>
         <Button variant="outline" className="mt-5" onClick={onEdit}>
-          Edit template
+          {isExample ? "Use this template" : "Edit template"}
         </Button>
       </section>
       <div className="grid items-stretch gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,.8fr)]">
@@ -157,7 +159,7 @@ export function TemplateDetail({
               </span>
               <Button variant="outline" onClick={onSavePreset}>
                 <Bookmark data-icon="inline-start" />
-                {saved ? "Saved" : "Save preset"}
+                {isExample ? "Use this template" : saved ? "Saved" : "Save preset"}
               </Button>
             </div>
           </CardContent>

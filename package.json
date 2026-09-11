@@ -5,6 +5,7 @@
     "dev:frontend": "npm --prefix app run dev",
     "dev:backend": "npm --prefix server run dev",
     "build:frontend": "npm --prefix app run build",
+    "deploy": "npm run build:frontend && npm --prefix server run deploy",
     "lint": "npm --prefix app run lint && npm --prefix server run lint",
     "format": "npm --prefix app run format && npm --prefix server run format",
     "format:check": "npm --prefix app run format:check && npm --prefix server run format:check",
