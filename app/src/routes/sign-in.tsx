@@ -2,9 +2,13 @@ import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { PublicPageHeader } from "@/components/public-page-header";
 import { PageContainer } from "@/containers/page-container";
 import { authClient } from "@/lib/auth";
+import { privatePageHead } from "@/lib/seo";
 import { AuthScreen } from "@/screens/auth-screen";
 
-export const Route = createFileRoute("/sign-in")({ component: SignInRoute });
+export const Route = createFileRoute("/sign-in")({
+  head: () => privatePageHead("Sign in | Prompt Shelf"),
+  component: SignInRoute,
+});
 
 function SignInRoute() {
   const session = authClient.useSession();
