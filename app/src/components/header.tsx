@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { Library, LogOut, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -8,6 +8,41 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Template } from "@/lib/api";
+
+type PublicHeaderProps = {
+  onCreateTemplate: () => void;
+  onOpenShelf?: () => void;
+  onSignOut?: () => void;
+};
+
+export function PublicHeader({ onCreateTemplate, onOpenShelf, onSignOut }: PublicHeaderProps) {
+  return (
+    <header className="sticky top-0 z-10 border-b border-black/[.07] bg-[#f8f8f6]/90 backdrop-blur-xl">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5">
+        <a className="font-semibold tracking-[-.04em]" href="/">
+          Prompt Shelf
+        </a>
+        <nav className="flex items-center gap-2">
+          {onOpenShelf ? (
+            <Button variant="ghost" size="sm" aria-label="My shelf" onClick={onOpenShelf}>
+              <Library />
+              <span className="hidden sm:inline">My shelf</span>
+            </Button>
+          ) : null}
+          <Button variant="outline" size="sm" onClick={onCreateTemplate}>
+            <Plus data-icon="inline-start" /> New template
+          </Button>
+          {onSignOut ? (
+            <Button variant="ghost" size="sm" aria-label="Sign out" onClick={onSignOut}>
+              <LogOut />
+              <span className="hidden sm:inline">Sign out</span>
+            </Button>
+          ) : null}
+        </nav>
+      </div>
+    </header>
+  );
+}
 
 type Props = {
   templates: Template[];
@@ -51,14 +86,9 @@ export function Header({
             <Button variant="outline" size="sm" onClick={onCreateTemplate}>
               <Plus data-icon="inline-start" /> New template
             </Button>
-            <Button
-              className="hidden sm:inline-flex"
-              variant="ghost"
-              size="icon"
-              aria-label="Sign out"
-              onClick={onSignOut}
-            >
-              <span className="text-xs font-semibold">SV</span>
+            <Button variant="ghost" size="sm" aria-label="Sign out" onClick={onSignOut}>
+              <LogOut />
+              <span className="hidden md:inline">Sign out</span>
             </Button>
           </nav>
         </div>

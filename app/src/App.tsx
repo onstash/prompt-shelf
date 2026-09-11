@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { PublicHeader } from "@/components/header";
 import { Toaster } from "@/components/ui/sonner";
 import { PageContainer } from "@/containers/page-container";
 import { api } from "@/lib/api";
@@ -10,8 +11,16 @@ import { TemplateScreen } from "@/screens/template-screen";
 import { WelcomeScreen } from "@/screens/welcome-screen";
 import "./index.css";
 
+type Screen = "welcome" | "example" | "templates" | "create";
+
+function initialScreen(): Screen {
+  return new URLSearchParams(window.location.search).get("intent") === "create"
+    ? "create"
+    : "welcome";
+}
+
 function App() {
-  const [screen, setScreen] = useState<"welcome" | "example" | "templates" | "create">("welcome");
+  const [screen, setScreen] = useState<Screen>(initialScreen);
   const session = authClient.useSession();
   const templatesQuery = useQuery({
     queryKey: ["templates"],
@@ -19,13 +28,33 @@ function App() {
     enabled: Boolean(session.data),
   });
 
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has("intent")) return;
+    url.searchParams.delete("intent");
+    window.history.replaceState({}, "", url);
+  }, []);
+
+  const beginCreating = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("intent", "create");
+    window.history.replaceState({}, "", url);
+    setScreen("create");
+  };
+
+  const publicHeader = (
+    <PublicHeader
+      onCreateTemplate={beginCreating}
+      onOpenShelf={session.data ? () => setScreen("templates") : undefined}
+      onSignOut={session.data ? () => void authClient.signOut() : undefined}
+    />
+  );
+
   if (screen === "welcome") {
     return (
       <PageContainer>
-        <WelcomeScreen
-          onCreate={() => setScreen("create")}
-          onExample={() => setScreen("example")}
-        />
+        {publicHeader}
+        <WelcomeScreen onCreate={beginCreating} onExample={() => setScreen("example")} />
         <Toaster position="bottom-center" />
       </PageContainer>
     );
@@ -34,10 +63,8 @@ function App() {
   if (screen === "example") {
     return (
       <PageContainer>
-        <ExampleScreen
-          onBack={() => setScreen("welcome")}
-          onUseExample={() => setScreen("create")}
-        />
+        {publicHeader}
+        <ExampleScreen onBack={() => setScreen("welcome")} onUseExample={beginCreating} />
         <Toaster position="bottom-center" />
       </PageContainer>
     );
@@ -54,6 +81,7 @@ function App() {
   if (!session.data) {
     return (
       <PageContainer>
+        {publicHeader}
         <AuthScreen />
         <Toaster position="bottom-center" />
       </PageContainer>

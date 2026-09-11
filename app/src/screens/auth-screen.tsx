@@ -1,26 +1,30 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth";
 
 export function AuthScreen() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  const signInStarted = useRef(false);
 
   async function signIn() {
+    if (signInStarted.current) return;
+    signInStarted.current = true;
     setPending(true);
     setError("");
     const result = await authClient.signIn.social({
       provider: "google",
-      callbackURL: window.location.origin,
+      callbackURL: window.location.href,
     });
     if (result?.error) {
       setError(result.error.message ?? "Google sign-in failed");
+      signInStarted.current = false;
       setPending(false);
     }
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-sm items-center px-5 py-12">
+    <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-sm items-center px-5 py-12">
       <div className="w-full space-y-6">
         <div>
           <p className="text-sm font-semibold">Prompt Shelf</p>
