@@ -15,6 +15,14 @@ export type Template = {
   fields: Field[];
   version: number;
   updatedAt: string;
+  isExample: boolean;
+};
+
+export type TemplateRevision = {
+  version: number;
+  body: string;
+  fields: Field[];
+  createdAt: string;
 };
 
 export type TemplateInput = Pick<
@@ -28,6 +36,9 @@ export interface TemplateRepository {
   findSystemExample(id: string): Promise<Template | null>;
   create(workspaceId: string, template: Template): Promise<Template>;
   update(workspaceId: string, id: string, input: TemplateInput): Promise<Template | null>;
+  delete(workspaceId: string, id: string): Promise<boolean>;
+  listRevisions(workspaceId: string, id: string): Promise<TemplateRevision[]>;
+  restoreRevision(workspaceId: string, id: string, version: number): Promise<Template | null>;
 }
 
 type TemplateRow = {
@@ -39,10 +50,11 @@ type TemplateRow = {
   fields_json: string;
   version: number;
   updated_at: string;
+  workspace_id: string | null;
 };
 
 const selectCurrentRevision = `
-  SELECT t.id, t.title, t.description, t.category,
+  SELECT t.id, t.title, t.description, t.category, t.workspace_id,
          r.body, r.fields_json, t.current_version AS version, t.updated_at
   FROM templates t
   JOIN template_revisions r
@@ -60,6 +72,7 @@ function mapTemplate(row: TemplateRow): Template {
     fields: JSON.parse(row.fields_json) as Field[],
     version: row.version,
     updatedAt: row.updated_at,
+    isExample: row.workspace_id === null,
   };
 }
 
@@ -119,6 +132,59 @@ export class D1TemplateRepository implements TemplateRepository {
     const created = await this.find(workspaceId, template.id);
     if (!created) throw new Error("Created template could not be loaded");
     return created;
+  }
+
+  async listRevisions(workspaceId: string, id: string): Promise<TemplateRevision[]> {
+    if (!(await this.find(workspaceId, id))) return [];
+    const result = await this.db
+      .prepare(
+        `SELECT r.version, r.body, r.fields_json, r.created_at
+         FROM template_revisions r
+         JOIN templates t ON t.id = r.template_id
+         WHERE r.template_id = ? AND (t.workspace_id = ? OR t.workspace_id IS NULL)
+         ORDER BY r.version DESC`,
+      )
+      .bind(id, workspaceId)
+      .all<{ version: number; body: string; fields_json: string; created_at: string }>();
+    // SAFETY: fields_json is written only from validated template field arrays.
+    return result.results.map((row) => ({
+      version: row.version,
+      body: row.body,
+      fields: JSON.parse(row.fields_json) as Field[],
+      createdAt: row.created_at,
+    }));
+  }
+
+  async restoreRevision(
+    workspaceId: string,
+    id: string,
+    version: number,
+  ): Promise<Template | null> {
+    const current = await this.find(workspaceId, id);
+    if (!current || current.isExample) return null;
+    const revision = await this.db
+      .prepare(
+        `SELECT body, fields_json FROM template_revisions WHERE template_id = ? AND version = ?`,
+      )
+      .bind(id, version)
+      .first<{ body: string; fields_json: string }>();
+    if (!revision) return null;
+    // SAFETY: fields_json is written only from validated template field arrays.
+    return this.update(workspaceId, id, {
+      title: current.title,
+      description: current.description,
+      category: current.category,
+      body: revision.body,
+      fields: JSON.parse(revision.fields_json) as Field[],
+    });
+  }
+
+  async delete(workspaceId: string, id: string): Promise<boolean> {
+    const result = await this.db
+      .prepare("DELETE FROM templates WHERE id = ? AND workspace_id = ?")
+      .bind(id, workspaceId)
+      .run();
+    return Boolean(result.meta.changes);
   }
 
   async update(workspaceId: string, id: string, input: TemplateInput): Promise<Template | null> {

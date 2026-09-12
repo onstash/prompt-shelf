@@ -3,6 +3,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { TemplateDetail } from "@/components/template-detail";
+import { TemplateDetailSkeleton } from "@/components/template-detail-skeleton";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 
@@ -44,11 +45,7 @@ export function ExampleScreen({ onBack, onUseExample }: Props) {
     );
   }, [example.data, values]);
 
-  if (example.isPending) {
-    return (
-      <main className="mx-auto max-w-7xl px-5 py-20 text-muted-foreground">Loading example…</main>
-    );
-  }
+  if (example.isPending) return <TemplateDetailSkeleton variant="example" />;
 
   if (example.isError) {
     return <main className="mx-auto max-w-7xl px-5 py-20">Could not load the example.</main>;
@@ -63,7 +60,6 @@ export function ExampleScreen({ onBack, onUseExample }: Props) {
       </div>
       <TemplateDetail
         template={example.data}
-        loading={false}
         segments={segments}
         values={values}
         update={(key, value) => {
@@ -82,8 +78,9 @@ export function ExampleScreen({ onBack, onUseExample }: Props) {
         }}
         saved={false}
         onSavePreset={onUseExample}
+        onClearAnswers={() => setValues({})}
         onEdit={onUseExample}
-        isExample
+        variant="example"
       />
     </>
   );

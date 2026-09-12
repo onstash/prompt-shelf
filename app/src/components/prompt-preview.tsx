@@ -1,4 +1,5 @@
-import { Check, Copy } from "lucide-react";
+import type { ReactNode } from "react";
+import { Check, Copy, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -7,18 +8,27 @@ type Props = {
   segments: Segment[];
   copied: boolean;
   onCopy: () => void;
+  onEdit?: () => void;
   revisionLabel: string;
+  children?: ReactNode;
 };
 
-export function PromptPreview({ segments, copied, onCopy, revisionLabel }: Props) {
+export function PromptPreview({
+  segments,
+  copied,
+  onCopy,
+  onEdit,
+  revisionLabel,
+  children,
+}: Props) {
   return (
-    <Card className="flex overflow-hidden border-black/[.08] shadow-sm lg:h-[680px] lg:flex-col">
+    <Card className="flex h-[clamp(360px,55dvh,560px)] min-w-0 overflow-hidden border-black/[.08] shadow-sm lg:flex-col">
       <CardHeader className="preview-header items-center justify-between border-b bg-white/60 px-6 py-4">
         <CardTitle className="text-base">Live prompt</CardTitle>
         <span className="text-xs text-muted-foreground">{revisionLabel}</span>
       </CardHeader>
       <CardContent className="min-h-0 flex-1 overflow-y-auto bg-white px-6 py-7">
-        <div className="min-h-[310px] whitespace-pre-wrap font-mono text-[14px] leading-8 text-[#45464a] sm:text-[15px]">
+        <div className="min-w-0 whitespace-pre-wrap break-words font-mono text-[14px] leading-8 text-[#45464a] [overflow-wrap:anywhere] sm:text-[15px] py-3">
           {segments.length > 0
             ? segments.map((segment, index) =>
                 segment.type === "value" ? (
@@ -34,10 +44,19 @@ export function PromptPreview({ segments, copied, onCopy, revisionLabel }: Props
         <span className="hidden text-xs text-muted-foreground sm:inline">
           Blue text comes from your answers
         </span>
-        <Button onClick={onCopy} className="ml-auto">
-          {copied ? <Check data-icon="inline-start" /> : <Copy data-icon="inline-start" />}
-          {copied ? "Copied" : "Copy prompt"}
-        </Button>
+        <div className="ml-auto flex items-center gap-2">
+          {children}
+          {onEdit ? (
+            <Button variant="outline" aria-label="Edit template" onClick={onEdit}>
+              <Pencil />
+              Edit Template
+            </Button>
+          ) : null}
+          <Button onClick={onCopy}>
+            {copied ? <Check data-icon="inline-start" /> : <Copy data-icon="inline-start" />}
+            {copied ? "Copied" : "Copy prompt"}
+          </Button>
+        </div>
       </div>
     </Card>
   );

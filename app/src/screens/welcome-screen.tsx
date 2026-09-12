@@ -1,27 +1,39 @@
 import { Button } from "@/components/ui/button";
 
-type WelcomeScreenProps = { onCreate: () => void; onExample: () => void };
+type WelcomeScreenProps = {
+  onCreate: () => void;
+  onExample: () => void;
+  onOpenShelf: () => void;
+  audience?: "new" | "returning";
+};
 
-export function WelcomeScreen({ onCreate, onExample }: WelcomeScreenProps) {
+export function WelcomeScreen({
+  onCreate,
+  onExample,
+  onOpenShelf,
+  audience = "new",
+}: WelcomeScreenProps) {
+  const returning = audience === "returning";
+
   return (
     <main className="mx-auto max-w-5xl px-5 py-10">
       <div className="max-w-2xl">
-        <p className="mb-4 text-xs font-semibold uppercase tracking-[.08em] text-blue-600">
-          Prompt Shelf
-        </p>
         <h1 className="text-4xl font-semibold tracking-[-.06em] sm:text-6xl">
-          Turn repeatable thinking into reusable workflows.
+          {returning
+            ? "Your reusable workflows are ready."
+            : "Turn repeatable thinking into reusable workflows."}
         </h1>
         <p className="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">
-          Create prompt templates with variables, fill them in when you need them, and copy a clear
-          result to any AI tool.
+          {returning
+            ? "Open your shelf to customize a template, preview the result, and copy it into any AI tool."
+            : "Create prompt templates with variables, fill them in when you need them, and copy a clear result to any AI tool."}
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <Button onClick={onCreate} size="lg">
-            Create your first template
+          <Button onClick={returning ? onOpenShelf : onCreate} size="lg">
+            {returning ? "Open my shelf" : "Create your first template"}
           </Button>
-          <Button variant="outline" size="lg" onClick={onExample}>
-            Explore an example
+          <Button variant="outline" size="lg" onClick={returning ? onCreate : onExample}>
+            {returning ? "New template" : "Explore an example"}
           </Button>
         </div>
       </div>

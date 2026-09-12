@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { AuthScreen } from "@/screens/auth-screen";
+import { TemplateDetailSkeleton } from "@/components/template-detail-skeleton";
 import { PageContainer } from "@/containers/page-container";
 import { api } from "@/lib/api";
 import { authClient } from "@/lib/auth";
@@ -7,10 +8,10 @@ import { TemplateScreen } from "@/screens/template-screen";
 
 type Props = {
   initialTemplateId?: string;
-  startCreating?: boolean;
+  mode?: "view" | "create" | "edit";
 };
 
-export function ShelfScreen({ initialTemplateId, startCreating = false }: Props) {
+export function ShelfScreen({ initialTemplateId, mode = "view" }: Props) {
   const session = authClient.useSession();
   const templatesQuery = useQuery({
     queryKey: ["templates"],
@@ -37,9 +38,7 @@ export function ShelfScreen({ initialTemplateId, startCreating = false }: Props)
   if (templatesQuery.isPending) {
     return (
       <PageContainer>
-        <main className="mx-auto max-w-7xl px-5 py-20 text-muted-foreground">
-          Loading Prompt Shelf…
-        </main>
+        <TemplateDetailSkeleton />
       </PageContainer>
     );
   }
@@ -58,8 +57,9 @@ export function ShelfScreen({ initialTemplateId, startCreating = false }: Props)
   return (
     <PageContainer>
       <TemplateScreen
+        key={`${mode}-${initialTemplateId ?? "shelf"}`}
         templates={templatesQuery.data}
-        startCreating={startCreating}
+        mode={mode}
         initialTemplateId={initialTemplateId}
       />
     </PageContainer>
