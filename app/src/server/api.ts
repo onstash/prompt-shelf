@@ -1,9 +1,16 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { z } from "zod";
 import { createAuth, type AppBindings } from "./auth";
 import { D1TemplateRepository, type Template, type TemplateInput } from "./template-repository";
 
 type Variables = { workspaceId: string };
+const productEventSchema = z
+  .object({
+    name: z.enum(["template_opened", "form_started", "prompt_copied", "template_created"]),
+    templateId: z.string().min(1).max(100),
+  })
+  .strict();
 const app = new Hono<{ Bindings: AppBindings; Variables: Variables }>();
 
 app.use("*", async (c, next) => {
@@ -45,6 +52,42 @@ app.post("/api/examples/:id/compile", async (c) => {
   if (!example) return c.json({ error: "Example not found" }, 404);
   const values = await c.req.json<Record<string, string>>();
   return c.json(compile(example, values));
+});
+
+app.post("/api/product-events", async (c) => {
+  let input: unknown;
+  try {
+    input = await c.req.json();
+  } catch {
+    return c.json({ error: "Invalid event" }, 422);
+  }
+
+  const parsed = productEventSchema.safeParse(input);
+  if (!parsed.success) return c.json({ error: "Invalid event" }, 422);
+  const { name, templateId } = parsed.data;
+
+  const repository = new D1TemplateRepository(c.env.DB);
+  const example = await repository.findSystemExample(templateId);
+  let workspaceId: string | null = null;
+
+  if (example) {
+    if (name === "template_created") return c.json({ error: "Invalid event" }, 422);
+  } else {
+    const session = await createAuth(c.env, c.req.url).api.getSession({
+      headers: c.req.raw.headers,
+    });
+    if (!session) return c.json({ error: "Authentication required" }, 401);
+    workspaceId = `personal-${session.user.id}`;
+    const template = await repository.find(workspaceId, templateId);
+    if (!template) return c.json({ error: "Template not found" }, 404);
+  }
+
+  await c.env.DB.prepare(
+    "INSERT INTO product_events (id, event_name, template_id, workspace_id) VALUES (?, ?, ?, ?)",
+  )
+    .bind(crypto.randomUUID(), name, templateId, workspaceId)
+    .run();
+  return c.json({ accepted: true }, 202);
 });
 
 app.get("/api/templates", async (c) => {

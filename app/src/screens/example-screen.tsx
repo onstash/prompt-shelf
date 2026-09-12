@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
@@ -18,11 +18,22 @@ export function ExampleScreen({ onBack, onUseExample }: Props) {
     Array<{ type: "static" | "value"; text: string; key?: string }>
   >([]);
   const [copied, setCopied] = useState(false);
+  const formStarted = useRef(false);
+  const opened = useRef(false);
+  const track = (name: "template_opened" | "form_started" | "prompt_copied") => {
+    void api.trackProductEvent(name, "clear-first-draft").catch(() => undefined);
+  };
   const compile = useMutation({
     mutationFn: (previewValues: Record<string, string>) =>
       api.compileExample("clear-first-draft", previewValues),
     onSuccess: (result) => setSegments(result.segments),
   });
+
+  useEffect(() => {
+    if (!example.data || opened.current) return;
+    opened.current = true;
+    track("template_opened");
+  }, [example.data]);
 
   useEffect(() => {
     if (!example.data) return;
@@ -55,11 +66,18 @@ export function ExampleScreen({ onBack, onUseExample }: Props) {
         loading={false}
         segments={segments}
         values={values}
-        update={(key, value) => setValues((current) => ({ ...current, [key]: value }))}
+        update={(key, value) => {
+          if (!formStarted.current) {
+            formStarted.current = true;
+            track("form_started");
+          }
+          setValues((current) => ({ ...current, [key]: value }));
+        }}
         copied={copied}
         onCopy={async () => {
           await navigator.clipboard.writeText(segments.map((segment) => segment.text).join(""));
           setCopied(true);
+          track("prompt_copied");
           toast.success("Prompt copied");
         }}
         saved={false}

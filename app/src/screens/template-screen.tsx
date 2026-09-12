@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -50,6 +50,14 @@ export function TemplateScreen({ templates, startCreating = false, initialTempla
   >([]);
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
+  const openedTemplateIds = useRef(new Set<string>());
+  const startedTemplateIds = useRef(new Set<string>());
+  const track = (
+    name: "template_opened" | "form_started" | "prompt_copied" | "template_created",
+    templateId = selectedTemplateId,
+  ) => {
+    void api.trackProductEvent(name, templateId).catch(() => undefined);
+  };
 
   const templateQuery = useQuery({
     queryKey: ["templates", selectedTemplateId],
@@ -62,6 +70,12 @@ export function TemplateScreen({ templates, startCreating = false, initialTempla
       api.compileTemplate(selectedTemplateId, previewValues ?? values),
     onSuccess: (result) => setSegments(result.segments),
   });
+
+  useEffect(() => {
+    if (!template || openedTemplateIds.current.has(template.id)) return;
+    openedTemplateIds.current.add(template.id);
+    track("template_opened", template.id);
+  }, [template]);
 
   useEffect(() => {
     if (!template) return;
@@ -93,6 +107,7 @@ export function TemplateScreen({ templates, startCreating = false, initialTempla
       setCreating(false);
       setEditing(false);
       toast.success(editing ? "Template updated" : "Template created");
+      if (!editing) track("template_created", savedTemplate.id);
       await navigate({
         to: "/templates/$templateId",
         params: { templateId: savedTemplate.id },
@@ -167,7 +182,13 @@ export function TemplateScreen({ templates, startCreating = false, initialTempla
         loading={false}
         segments={segments}
         values={values}
-        update={(key, value) => setValues((current) => ({ ...current, [key]: value }))}
+        update={(key, value) => {
+          if (!startedTemplateIds.current.has(template.id)) {
+            startedTemplateIds.current.add(template.id);
+            track("form_started", template.id);
+          }
+          setValues((current) => ({ ...current, [key]: value }));
+        }}
         copied={copied}
         onCopy={async () => {
           if (!ready) return toast.error("Complete the required fields first");
@@ -175,6 +196,7 @@ export function TemplateScreen({ templates, startCreating = false, initialTempla
             const result = await compileMutation.mutateAsync();
             await navigator.clipboard?.writeText(result.text);
             setCopied(true);
+            track("prompt_copied", template.id);
             toast.success("Prompt copied");
             setTimeout(() => setCopied(false), 1800);
           } catch {
