@@ -1,5 +1,3 @@
-import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -12,57 +10,61 @@ import {
 import type { FieldType, TemplateField } from "@/lib/api";
 
 type Draft = { fields: TemplateField[] };
-type Props = { draft: Draft; setDraft: (draft: Draft) => void; emptyField: () => TemplateField };
+type Props = { draft: Draft; setDraft: (draft: Draft) => void };
 
-export function TemplateFieldEditor({ draft, setDraft, emptyField }: Props) {
+export function TemplateFieldEditor({ draft, setDraft }: Props) {
+  if (draft.fields.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-black/[.12] px-5 py-10 text-center">
+        <p className="text-sm font-medium">No fields yet</p>
+        <p className="mx-auto mt-2 max-w-64 text-sm leading-6 text-muted-foreground">
+          Add a variable such as{" "}
+          <code className="rounded bg-muted px-1.5 py-0.5">{"{{topic}}"}</code> to your prompt.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <Label>Form fields</Label>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Define the answers people will provide.
-          </p>
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => setDraft({ ...draft, fields: [...draft.fields, emptyField()] })}
-        >
-          <Plus data-icon="inline-start" /> Add field
-        </Button>
-      </div>
+      <p className="text-xs leading-5 text-muted-foreground">
+        Fields follow the variables in your prompt. Remove a field by deleting its variable from the
+        prompt.
+      </p>
       {draft.fields.map((field, index) => (
         <div
-          key={index}
+          key={field.key}
           className="flex flex-col gap-3 rounded-xl border border-black/[.08] bg-[#fafafa] p-4"
         >
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="flex items-center justify-between gap-3">
+            <code className="min-w-0 truncate text-xs text-muted-foreground">{`{{${field.key}}}`}</code>
+            <label className="flex shrink-0 items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={field.required}
+                onChange={(event) => {
+                  const fields = [...draft.fields];
+                  fields[index] = { ...field, required: event.target.checked };
+                  setDraft({ ...draft, fields });
+                }}
+              />
+              Required
+            </label>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor={`field-${field.key}-label`}>Label</Label>
             <Input
-              aria-label={`Field ${index + 1} label`}
-              placeholder="Field label"
+              id={`field-${field.key}-label`}
               value={field.label}
-              onChange={(e) => {
+              onChange={(event) => {
                 const fields = [...draft.fields];
-                fields[index] = { ...field, label: e.target.value };
-                setDraft({ ...draft, fields });
-              }}
-            />
-            <Input
-              aria-label={`Field ${index + 1} key`}
-              placeholder="field_key"
-              value={field.key}
-              onChange={(e) => {
-                const fields = [...draft.fields];
-                fields[index] = {
-                  ...field,
-                  key: e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, "_"),
-                };
+                fields[index] = { ...field, label: event.target.value };
                 setDraft({ ...draft, fields });
               }}
             />
           </div>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor={`field-${field.key}-type`}>Answer type</Label>
             <Select
               value={field.type}
               onValueChange={(value) => {
@@ -73,60 +75,39 @@ export function TemplateFieldEditor({ draft, setDraft, emptyField }: Props) {
                 setDraft({ ...draft, fields });
               }}
             >
-              <SelectTrigger aria-label={`Field ${index + 1} type`} className="w-32">
-                <SelectValue placeholder="Type" />
+              <SelectTrigger id={`field-${field.key}-type`}>
+                <SelectValue placeholder="Choose a type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="text">Text</SelectItem>
-                <SelectItem value="textarea">Textarea</SelectItem>
-                <SelectItem value="select">Select</SelectItem>
+                <SelectItem value="text">Short text</SelectItem>
+                <SelectItem value="textarea">Long text</SelectItem>
+                <SelectItem value="select">Choose from options</SelectItem>
                 <SelectItem value="number">Number</SelectItem>
               </SelectContent>
             </Select>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={field.required}
-                onChange={(e) => {
+          </div>
+          {field.type === "select" ? (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor={`field-${field.key}-options`}>Options</Label>
+              <Input
+                id={`field-${field.key}-options`}
+                placeholder="Clear, friendly, direct"
+                value={(field.options ?? []).join(", ")}
+                onChange={(event) => {
                   const fields = [...draft.fields];
-                  fields[index] = { ...field, required: e.target.checked };
+                  fields[index] = {
+                    ...field,
+                    options: event.target.value
+                      .split(",")
+                      .map((option) => option.trim())
+                      .filter(Boolean),
+                  };
                   setDraft({ ...draft, fields });
                 }}
-              />{" "}
-              Required
-            </label>
-            <Button
-              type="button"
-              variant="ghost"
-              className="ml-auto text-destructive"
-              onClick={() =>
-                setDraft({
-                  ...draft,
-                  fields: draft.fields.filter((_, fieldIndex) => fieldIndex !== index),
-                })
-              }
-            >
-              Remove
-            </Button>
-          </div>
-          {field.type === "select" && (
-            <Input
-              aria-label={`Field ${index + 1} options`}
-              placeholder="Options, separated by commas"
-              value={(field.options ?? []).join(", ")}
-              onChange={(e) => {
-                const fields = [...draft.fields];
-                fields[index] = {
-                  ...field,
-                  options: e.target.value
-                    .split(",")
-                    .map((option) => option.trim())
-                    .filter(Boolean),
-                };
-                setDraft({ ...draft, fields });
-              }}
-            />
-          )}
+              />
+              <p className="text-xs text-muted-foreground">Separate options with commas.</p>
+            </div>
+          ) : null}
         </div>
       ))}
     </div>

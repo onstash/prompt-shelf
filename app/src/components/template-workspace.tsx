@@ -20,7 +20,7 @@ export function TemplateWorkspace({
   onSignOut,
 }: Props) {
   return (
-    <div className="mx-auto flex max-w-[1440px]">
+    <div className="mx-auto flex w-full min-w-0 max-w-[1440px]">
       <aside className="hidden w-64 shrink-0 border-r lg:block">
         <div className="sticky top-16 flex h-[calc(100vh-4rem)] flex-col p-4">
           <TemplateNavigation

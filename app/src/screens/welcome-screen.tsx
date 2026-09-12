@@ -25,16 +25,32 @@ export function WelcomeScreen({
         </h1>
         <p className="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">
           {returning
-            ? "Open your shelf to customize a template, preview the result, and copy it into any AI tool."
+            ? "Choose a template from your shelf to customize it, preview the result, and copy it into any AI tool."
             : "Create prompt templates with variables, fill them in when you need them, and copy a clear result to any AI tool."}
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <Button onClick={returning ? onOpenShelf : onCreate} size="lg">
-            {returning ? "Open my shelf" : "Create your first template"}
-          </Button>
-          <Button variant="outline" size="lg" onClick={returning ? onCreate : onExample}>
-            {returning ? "New template" : "Explore an example"}
-          </Button>
+          {returning ? (
+            <>
+              <Button onClick={onOpenShelf} size="lg" className="lg:hidden">
+                Open my shelf
+              </Button>
+              <Button variant="outline" size="lg" onClick={onCreate} className="lg:hidden">
+                New template
+              </Button>
+              <Button size="lg" onClick={onCreate} className="hidden lg:inline-flex">
+                New template
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button onClick={onCreate} size="lg">
+                Create your first template
+              </Button>
+              <Button variant="outline" size="lg" onClick={onExample}>
+                Explore an example
+              </Button>
+            </>
+          )}
         </div>
       </div>
       <div className="mt-20 grid gap-4 sm:grid-cols-3">

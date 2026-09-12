@@ -22,7 +22,7 @@ export function PromptPreview({
   children,
 }: Props) {
   return (
-    <Card className="flex h-[clamp(360px,55dvh,560px)] min-w-0 overflow-hidden border-black/[.08] shadow-sm lg:flex-col">
+    <Card className="flex h-[clamp(360px,55dvh,560px)] min-w-0 max-w-full flex-col overflow-hidden border-black/[.08] shadow-sm">
       <CardHeader className="preview-header items-center justify-between border-b bg-white/60 px-6 py-4">
         <CardTitle className="text-base">Live prompt</CardTitle>
         <span className="text-xs text-muted-foreground">{revisionLabel}</span>
@@ -40,11 +40,11 @@ export function PromptPreview({
             : null}
         </div>
       </CardContent>
-      <div className="flex items-center justify-between gap-4 border-t bg-white px-6 py-4">
+      <div className="flex flex-wrap items-center gap-3 border-t bg-white px-4 py-4 sm:px-6">
         <span className="hidden text-xs text-muted-foreground sm:inline">
           Blue text comes from your answers
         </span>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex max-w-full flex-wrap items-center justify-end gap-2">
           {children}
           {onEdit ? (
             <Button variant="outline" aria-label="Edit template" onClick={onEdit}>
