@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/onstash/prompt-shelf/compare/v0.1.0...v0.2.0) (2026-09-12)
+
+
+### Features
+
+* improve template workspace ([#10](https://github.com/onstash/prompt-shelf/issues/10)) ([bac944e](https://github.com/onstash/prompt-shelf/commit/bac944e8a58f9b8ec7a96ebdea6bdfc373e67aa7))
+
 ## 0.1.0 (2026-09-12)
 
 
