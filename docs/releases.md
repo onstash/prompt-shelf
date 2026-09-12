@@ -1,6 +1,6 @@
 # Releases
 
-Prompt Shelf uses Release Please to turn Conventional Commits on `main` into version tags, GitHub Releases, and the root `CHANGELOG.md`.
+Prompt Shelf uses Release Please to turn Conventional Commits on `main` into version tags, GitHub Releases, and `app/CHANGELOG.md`.
 
 ## One-time GitHub setting
 
@@ -13,7 +13,7 @@ Open **Settings → Actions → General → Workflow permissions** and enable **
 3. Review and merge that pull request when the accumulated changes are ready to publish.
 4. Release Please creates the `vX.Y.Z` tag and matching GitHub Release.
 
-The first release is expected to be `v0.1.0`. Release Please creates `CHANGELOG.md` in its first release pull request.
+The first release is expected to be `v0.1.0`. Release Please creates `app/CHANGELOG.md` in its first release pull request.
 
 ## Version rules
 

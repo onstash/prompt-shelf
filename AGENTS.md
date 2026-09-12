@@ -77,7 +77,7 @@ When behavior changes, add focused tests if the repository has coverage for that
 - Keep the subject concise and written in Simple Technical English.
 - Do not commit unless the user explicitly asks for a commit.
 - Do not rewrite, reset, or discard user changes.
-- Release Please owns `CHANGELOG.md`, app version updates, `vX.Y.Z` tags, and GitHub Releases.
+- Release Please owns `app/CHANGELOG.md`, app version updates, `vX.Y.Z` tags, and GitHub Releases.
 - Never move a published release tag; create a patch release instead.
 
 ## Documentation
