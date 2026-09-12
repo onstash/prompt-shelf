@@ -12,6 +12,9 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
+
 jobs:
   verify:
     name: Format, lint, and build

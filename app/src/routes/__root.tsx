@@ -4,6 +4,8 @@ import { createRootRouteWithContext, HeadContent, Outlet, Scripts } from "@tanst
 import { Toaster } from "@/components/ui/sonner";
 import "@/index.css";
 
+const webAnalyticsToken = import.meta.env.VITE_CLOUDFLARE_WEB_ANALYTICS_TOKEN;
+
 export const Route = createRootRouteWithContext<{
   queryClient: import("@tanstack/react-query").QueryClient;
 }>()({
@@ -36,6 +38,13 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
     <html lang="en">
       <head>
         <HeadContent />
+        {webAnalyticsToken ? (
+          <script
+            type="module"
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            data-cf-beacon={JSON.stringify({ token: webAnalyticsToken })}
+          />
+        ) : null}
       </head>
       <body>
         {children}

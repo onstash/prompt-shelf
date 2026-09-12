@@ -22,6 +22,11 @@ export type CompileResult = {
   text: string;
   segments: Array<{ type: "static" | "value"; text: string; key?: string }>;
 };
+export type ProductEventName =
+  | "template_opened"
+  | "form_started"
+  | "prompt_copied"
+  | "template_created";
 
 export class ApiError extends Error {
   readonly status: number;
@@ -64,6 +69,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  trackProductEvent: (name: ProductEventName, templateId: string) =>
+    request<{ accepted: true }>("/api/product-events", {
+      method: "POST",
+      body: JSON.stringify({ name, templateId }),
+      keepalive: true,
+    }),
   getExample: (id: string) => request<Template>(`/api/examples/${id}`),
   compileExample: (id: string, values: Record<string, string>) =>
     request<CompileResult>(`/api/examples/${id}/compile`, {
