@@ -1,5 +1,5 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { PublicPageHeader } from "@/components/public-page-header";
+import { PublicHeader } from "@/components/public-header";
 import { PageContainer } from "@/containers/page-container";
 import { authClient } from "@/lib/auth";
 import { privatePageHead } from "@/lib/seo";
@@ -25,7 +25,7 @@ function SignInRoute() {
 
   return (
     <PageContainer>
-      <PublicPageHeader />
+      <PublicHeader />
       <AuthScreen />
     </PageContainer>
   );

@@ -17,6 +17,13 @@ export type Template = {
   fields: TemplateField[];
   version: number;
   updatedAt: string;
+  isExample: boolean;
+};
+export type TemplateRevision = {
+  version: number;
+  body: string;
+  fields: TemplateField[];
+  createdAt: string;
 };
 export type CompileResult = {
   text: string;
@@ -88,6 +95,12 @@ export const api = {
       method: "POST",
       body: JSON.stringify(values),
     }),
+  listTemplateRevisions: (id: string) =>
+    request<TemplateRevision[]>(`/api/templates/${id}/revisions`),
+  restoreTemplateRevision: (id: string, version: number) =>
+    request<Template>(`/api/templates/${id}/revisions/${version}/restore`, { method: "POST" }),
+  deleteTemplate: (id: string) =>
+    request<{ deleted: true }>(`/api/templates/${id}`, { method: "DELETE" }),
   updateTemplate: (
     id: string,
     input: Pick<Template, "title" | "description" | "body" | "fields">,

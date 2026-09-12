@@ -1,3 +1,15 @@
+import { Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,13 +27,23 @@ export type TemplateDraft = {
 };
 type Props = {
   draft: TemplateDraft;
+  mode: "create" | "edit";
   setDraft: (draft: TemplateDraft) => void;
   onCancel: () => void;
   onSave: () => void;
+  onDelete?: () => void;
   emptyField: () => TemplateField;
 };
 
-export function TemplateCreator({ draft, setDraft, onCancel, onSave, emptyField }: Props) {
+export function TemplateCreator({
+  draft,
+  mode,
+  setDraft,
+  onCancel,
+  onSave,
+  onDelete,
+  emptyField,
+}: Props) {
   const updateBody = (body: string) => {
     const keys = [...body.matchAll(/{{\s*([\w-]+)\s*}}/g)].map((match) => match[1]);
     const uniqueKeys = [...new Set(keys)];
@@ -45,9 +67,11 @@ export function TemplateCreator({ draft, setDraft, onCancel, onSave, emptyField 
       </button>
       <section className="mb-8">
         <div className="mb-2 text-xs font-semibold uppercase tracking-[.08em] text-blue-600">
-          New template
+          {mode === "edit" ? "Edit template" : "New template"}
         </div>
-        <h1 className="text-4xl font-semibold tracking-[-.055em]">Create something reusable</h1>
+        <h1 className="text-4xl font-semibold tracking-[-.055em]">
+          {mode === "edit" ? "Update your template" : "Create something reusable"}
+        </h1>
         <p className="mt-3 text-lg text-muted-foreground">
           Turn a workflow you repeat into a simple form.
         </p>
@@ -100,11 +124,33 @@ export function TemplateCreator({ draft, setDraft, onCancel, onSave, emptyField 
             emptyField={emptyField}
           />
           <Separator />
-          <div className="flex justify-end gap-2">
-            <Button variant="ghost" onClick={onCancel}>
+          <div className="flex items-center gap-2">
+            {onDelete ? (
+              <AlertDialog>
+                <AlertDialogTrigger render={<Button variant="destructive" />}>
+                  <Trash2 data-icon="inline-start" /> Delete template
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete this template?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This permanently deletes the template, its versions, and saved runs. This
+                      action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction variant="destructive" onClick={onDelete}>
+                      Delete template
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            ) : null}
+            <Button variant="ghost" className="ml-auto" onClick={onCancel}>
               Cancel
             </Button>
-            <Button onClick={onSave}>Create template</Button>
+            <Button onClick={onSave}>{mode === "edit" ? "Save changes" : "Create template"}</Button>
           </div>
         </CardContent>
       </Card>

@@ -1,5 +1,5 @@
 import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
-import { PublicPageHeader } from "@/components/public-page-header";
+import { PublicHeader } from "@/components/public-header";
 import { PageContainer } from "@/containers/page-container";
 import { publicPageHead } from "@/lib/seo";
 import { ExampleScreen } from "@/screens/example-screen";
@@ -23,7 +23,7 @@ function ExampleRoute() {
 
   return (
     <PageContainer>
-      <PublicPageHeader />
+      <PublicHeader />
       <ExampleScreen
         onBack={() => void navigate({ to: "/" })}
         onUseExample={() => void navigate({ to: "/templates/new" })}

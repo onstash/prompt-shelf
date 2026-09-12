@@ -8,5 +8,5 @@ export const Route = createFileRoute("/templates/new")({
 });
 
 function NewTemplateRoute() {
-  return <ShelfScreen startCreating />;
+  return <ShelfScreen mode="create" />;
 }

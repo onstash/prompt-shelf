@@ -1,4 +1,16 @@
-import { Bookmark, FileText, History } from "lucide-react";
+import { Bookmark, SlidersHorizontal } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,9 +23,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import type { Template } from "@/lib/api";
 import { PromptPreview } from "@/components/prompt-preview";
+import { TemplateVersionHistory } from "@/components/template-version-history";
 
 type Values = Record<string, string>;
 
@@ -32,9 +53,121 @@ function revisionLabel(template?: Template) {
   return `Version ${template.version} · ${date}`;
 }
 
+type CustomizeProps = {
+  fields: Template["fields"];
+  values: Values;
+  update: (key: string, value: string) => void;
+  saved: boolean;
+  onSavePreset: () => void;
+  onClearAnswers: () => void;
+  variant: "owned" | "example";
+  idPrefix: string;
+};
+
+function CustomizeForm({
+  fields,
+  values,
+  update,
+  saved,
+  onSavePreset,
+  onClearAnswers,
+  variant,
+  idPrefix,
+}: CustomizeProps) {
+  const ready = fields
+    .filter((field) => field.required)
+    .every((field) => values[field.key]?.trim());
+
+  return (
+    <>
+      <div className="flex flex-col gap-5">
+        {fields.map((field) => {
+          const id = `${idPrefix}-${field.key}`;
+          return (
+            <div className="flex flex-col gap-2" key={field.key}>
+              <Label htmlFor={id}>
+                {field.label}
+                {field.required ? (
+                  <span className="text-xs font-normal text-muted-foreground"> Required</span>
+                ) : null}
+              </Label>
+              {field.type === "textarea" ? (
+                <Textarea
+                  id={id}
+                  value={values[field.key] ?? ""}
+                  onChange={(event) => update(field.key, event.target.value)}
+                />
+              ) : field.type === "select" ? (
+                <Select
+                  value={values[field.key] ?? ""}
+                  onValueChange={(value) => value && update(field.key, value)}
+                >
+                  <SelectTrigger id={id}>
+                    <SelectValue placeholder="Choose an option" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(field.options ?? []).map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  id={id}
+                  type={field.type === "number" ? "number" : "text"}
+                  value={values[field.key] ?? ""}
+                  onChange={(event) => update(field.key, event.target.value)}
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <Separator className="my-6" />
+      <div className="flex flex-wrap items-center gap-3">
+        <AlertDialog>
+          <AlertDialogTrigger
+            render={
+              <Button variant="destructive" disabled={!fields.some((field) => values[field.key])} />
+            }
+          >
+            Clear answers
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Clear all answers?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Every field in this prompt will be emptied. This cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction variant="destructive" onClick={onClearAnswers}>
+                Clear answers
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+        <span
+          className={
+            ready ? "ml-auto text-xs text-emerald-700" : "ml-auto text-xs text-muted-foreground"
+          }
+        >
+          {ready ? "Ready to copy" : "Start with the required fields"}
+        </span>
+        <Button variant="outline" onClick={onSavePreset}>
+          <Bookmark data-icon="inline-start" />
+          {variant === "example" ? "Add to my shelf" : saved ? "Saved" : "Save preset"}
+        </Button>
+      </div>
+    </>
+  );
+}
+
 type Props = {
   template?: Template;
-  loading: boolean;
   segments: Array<{ type: "static" | "value"; text: string; key?: string }>;
   values: Values;
   update: (key: string, value: string) => void;
@@ -42,13 +175,14 @@ type Props = {
   onCopy: () => void;
   saved: boolean;
   onSavePreset: () => void;
+  onClearAnswers: () => void;
   onEdit: () => void;
-  isExample?: boolean;
+  onVersionRestored?: (template: Template) => void;
+  variant?: "owned" | "example";
 };
 
 export function TemplateDetail({
   template,
-  loading,
   segments,
   values,
   update,
@@ -56,122 +190,109 @@ export function TemplateDetail({
   onCopy,
   saved,
   onSavePreset,
+  onClearAnswers,
   onEdit,
-  isExample = false,
+  onVersionRestored,
+  variant = "owned",
 }: Props) {
+  const fields = template?.fields ?? [];
+  const isExample = variant === "example";
+
   return (
     <main className="mx-auto max-w-7xl px-5 py-10">
-      <div className="mb-8 flex items-center gap-2 text-sm text-muted-foreground">
-        <span>{isExample ? "Examples" : "My shelf"}</span>
-        <span>/</span>
-        <span>Writing</span>
-      </div>
       <section className="mb-9 max-w-3xl">
-        <div className="mb-2 text-xs font-semibold uppercase tracking-[.08em] text-blue-600">
-          Writing template
-        </div>
+        {isExample ? (
+          <Badge variant="outline" className="mb-4">
+            Example
+          </Badge>
+        ) : null}
         <h1 className="text-4xl font-semibold tracking-[-.055em] sm:text-5xl">
-          {loading ? "Loading template…" : (template?.title ?? "Clear first draft")}
+          {template?.title ?? "Untitled template"}
         </h1>
         <p className="mt-4 text-lg leading-8 text-muted-foreground">
-          {template?.description ||
-            "Turn a rough idea into a clear, useful first draft without losing your own voice."}
+          {template?.description || "Fill in the fields to build a prompt you can copy anywhere."}
         </p>
-        <Button variant="outline" className="mt-5" onClick={onEdit}>
-          {isExample ? "Use this template" : "Edit template"}
-        </Button>
       </section>
-      <div className="grid items-stretch gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,.8fr)]">
-        <PromptPreview
-          segments={segments}
-          copied={copied}
-          onCopy={onCopy}
-          revisionLabel={revisionLabel(template)}
-        />
-        <Card className="flex overflow-hidden border-black/[.08] shadow-sm lg:h-[680px] lg:flex-col">
-          <CardHeader className="border-b bg-white/60 px-6 py-4">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Customize</CardTitle>
-              <span className="text-xs text-muted-foreground">
-                {template?.fields.length ?? 4} fields
-              </span>
-            </div>
-          </CardHeader>
-          <CardContent className="min-h-0 flex-1 overflow-y-auto bg-white px-6 py-6">
-            <div className="flex flex-col gap-5">
-              {(template?.fields ?? []).map((field) => (
-                <div className="flex flex-col gap-2" key={field.key}>
-                  <Label htmlFor={`field-${field.key}`}>
-                    {field.label}
-                    {field.required && (
-                      <span className="text-xs font-normal text-muted-foreground"> Required</span>
-                    )}
-                  </Label>
-                  {field.type === "textarea" ? (
-                    <Textarea
-                      id={`field-${field.key}`}
-                      value={values[field.key] ?? ""}
-                      onChange={(e) => update(field.key, e.target.value)}
-                    />
-                  ) : field.type === "select" ? (
-                    <Select
-                      value={values[field.key] ?? ""}
-                      onValueChange={(value) => value && update(field.key, value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose an option" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {(field.options ?? []).map((option) => (
-                          <SelectItem key={option} value={option}>
-                            {option}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <Input
-                      id={`field-${field.key}`}
-                      type={field.type === "number" ? "number" : "text"}
-                      value={values[field.key] ?? ""}
-                      onChange={(e) => update(field.key, e.target.value)}
-                    />
-                  )}
+      <div
+        className={
+          fields.length > 0
+            ? "grid min-w-0 items-stretch gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,.8fr)]"
+            : "min-w-0"
+        }
+      >
+        {fields.length > 0 ? (
+          <Sheet>
+            <PromptPreview
+              segments={segments}
+              copied={copied}
+              onCopy={onCopy}
+              onEdit={isExample ? undefined : onEdit}
+              revisionLabel={revisionLabel(template)}
+            >
+              <SheetTrigger render={<Button variant="outline" className="lg:hidden" />}>
+                <SlidersHorizontal data-icon="inline-start" /> Customize
+              </SheetTrigger>
+            </PromptPreview>
+            <SheetContent
+              side="bottom"
+              className="max-h-[90dvh] rounded-t-2xl lg:hidden"
+              showCloseButton
+            >
+              <SheetHeader className="border-b pr-12">
+                <SheetTitle>Customize</SheetTitle>
+                <SheetDescription>
+                  Complete the {fields.length} fields to build your prompt.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="min-h-0 overflow-y-auto px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+                <CustomizeForm
+                  fields={fields}
+                  values={values}
+                  update={update}
+                  saved={saved}
+                  onSavePreset={onSavePreset}
+                  onClearAnswers={onClearAnswers}
+                  variant={variant}
+                  idPrefix="mobile-field"
+                />
+              </div>
+            </SheetContent>
+            <Card className="hidden h-[clamp(360px,55dvh,560px)] min-w-0 overflow-hidden border-black/[.08] shadow-sm lg:flex lg:flex-col">
+              <CardHeader className="border-b bg-white/60 px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base">Customize</CardTitle>
+                  <span className="text-xs text-muted-foreground">{fields.length} fields</span>
                 </div>
-              ))}
-            </div>
-            <Separator className="my-6" />
-            <div className="flex items-center justify-between gap-3">
-              <span
-                className={
-                  (template?.fields ?? [])
-                    .filter((field) => field.required)
-                    .every((field) => values[field.key]?.trim())
-                    ? "text-xs text-emerald-700"
-                    : "text-xs text-muted-foreground"
-                }
-              >
-                {(template?.fields ?? [])
-                  .filter((field) => field.required)
-                  .every((field) => values[field.key]?.trim())
-                  ? "Ready to copy"
-                  : "Start with the required fields"}
-              </span>
-              <Button variant="outline" onClick={onSavePreset}>
-                <Bookmark data-icon="inline-start" />
-                {isExample ? "Use this template" : saved ? "Saved" : "Save preset"}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              </CardHeader>
+              <CardContent className="min-h-0 flex-1 overflow-y-auto bg-white px-6 py-6">
+                <CustomizeForm
+                  fields={fields}
+                  values={values}
+                  update={update}
+                  saved={saved}
+                  onSavePreset={onSavePreset}
+                  onClearAnswers={onClearAnswers}
+                  variant={variant}
+                  idPrefix="desktop-field"
+                />
+              </CardContent>
+            </Card>
+          </Sheet>
+        ) : (
+          <PromptPreview
+            segments={segments}
+            copied={copied}
+            onCopy={onCopy}
+            onEdit={isExample ? undefined : onEdit}
+            revisionLabel={revisionLabel(template)}
+          />
+        )}
       </div>
-      <div className="mt-5 flex items-center gap-2 text-sm text-muted-foreground">
-        <History className="size-4" />
-        Recent versions
-        <Separator orientation="vertical" className="mx-1 h-4" />
-        <FileText className="size-4" />
-        {revisionLabel(template)}
-      </div>
+      {template && template.version > 1 && onVersionRestored ? (
+        <div className="mt-5">
+          <TemplateVersionHistory template={template} onRestored={onVersionRestored} />
+        </div>
+      ) : null}
     </main>
   );
 }

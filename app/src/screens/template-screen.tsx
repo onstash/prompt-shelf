@@ -5,12 +5,14 @@ import { toast } from "sonner";
 import { Header } from "@/components/header";
 import { TemplateCreator, type TemplateDraft } from "@/components/template-creator";
 import { TemplateDetail } from "@/components/template-detail";
+import { TemplateDetailSkeleton } from "@/components/template-detail-skeleton";
+import { TemplateWorkspace } from "@/components/template-workspace";
 import { api, type Template, type TemplateField } from "@/lib/api";
 import { authClient } from "@/lib/auth";
 
 type Props = {
   templates: Template[];
-  startCreating?: boolean;
+  mode: "view" | "create" | "edit";
   initialTemplateId?: string;
 };
 type Values = Record<string, string>;
@@ -33,17 +35,23 @@ const newDraft: TemplateDraft = {
 const emptyValues = (template?: Template) =>
   Object.fromEntries((template?.fields ?? []).map((field) => [field.key, ""]));
 
-export function TemplateScreen({ templates, startCreating = false, initialTemplateId }: Props) {
+export function TemplateScreen({ templates, mode, initialTemplateId }: Props) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const initialTemplate =
     templates.find((template) => template.id === initialTemplateId) ?? templates[0];
-  const [selectedTemplateId, setSelectedTemplateId] = useState(
-    initialTemplate?.id ?? "clear-first-draft",
+  const selectedTemplateId = initialTemplate?.id ?? "clear-first-draft";
+  const [formMode, setFormMode] = useState<"create" | "edit" | null>(mode === "view" ? null : mode);
+  const [draft, setDraft] = useState<TemplateDraft>(() =>
+    mode === "edit" && initialTemplate
+      ? {
+          title: initialTemplate.title,
+          description: initialTemplate.description,
+          body: initialTemplate.body,
+          fields: initialTemplate.fields,
+        }
+      : newDraft,
   );
-  const [creating, setCreating] = useState(startCreating);
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState<TemplateDraft>(newDraft);
   const [values, setValues] = useState<Values>(() => emptyValues(initialTemplate));
   const [segments, setSegments] = useState<
     Array<{ type: "static" | "value"; text: string; key?: string }>
@@ -62,7 +70,7 @@ export function TemplateScreen({ templates, startCreating = false, initialTempla
   const templateQuery = useQuery({
     queryKey: ["templates", selectedTemplateId],
     queryFn: () => api.getTemplate(selectedTemplateId),
-    enabled: !creating,
+    enabled: !formMode,
   });
   const template = templateQuery.data;
   const compileMutation = useMutation({
@@ -90,6 +98,35 @@ export function TemplateScreen({ templates, startCreating = false, initialTempla
     .filter((field) => field.required)
     .every((field) => values[field.key]?.trim());
 
+  const startTemplateDraft = () => {
+    if (!template) return;
+    if (!template.isExample) {
+      void navigate({
+        to: "/templates/$templateId/edit",
+        params: { templateId: template.id },
+      });
+      return;
+    }
+    setDraft({
+      title: template.title,
+      description: template.description,
+      body: template.body,
+      fields: template.fields,
+    });
+    setFormMode("create");
+  };
+
+  const deleteTemplate = async () => {
+    try {
+      await api.deleteTemplate(selectedTemplateId);
+      await queryClient.invalidateQueries({ queryKey: ["templates"] });
+      toast.success("Template deleted");
+      await navigate({ to: "/templates" });
+    } catch {
+      toast.error("Could not delete this template");
+    }
+  };
+
   const saveTemplate = async () => {
     if (!draft.title.trim() || !draft.body.trim())
       return toast.error("Add a title and prompt body first");
@@ -98,16 +135,15 @@ export function TemplateScreen({ templates, startCreating = false, initialTempla
     const keys = draft.fields.map((field) => field.key.trim());
     if (new Set(keys).size !== keys.length) return toast.error("Field keys must be unique");
     try {
-      const savedTemplate = editing
-        ? await api.updateTemplate(selectedTemplateId, draft)
-        : await api.createTemplate(draft);
+      const savedTemplate =
+        formMode === "edit"
+          ? await api.updateTemplate(selectedTemplateId, draft)
+          : await api.createTemplate(draft);
       await queryClient.invalidateQueries({ queryKey: ["templates"] });
-      setSelectedTemplateId(savedTemplate.id);
       setValues(emptyValues(savedTemplate));
-      setCreating(false);
-      setEditing(false);
-      toast.success(editing ? "Template updated" : "Template created");
-      if (!editing) track("template_created", savedTemplate.id);
+      setFormMode(null);
+      toast.success(formMode === "edit" ? "Template updated" : "Template created");
+      if (formMode === "create") track("template_created", savedTemplate.id);
       await navigate({
         to: "/templates/$templateId",
         params: { templateId: savedTemplate.id },
@@ -117,36 +153,47 @@ export function TemplateScreen({ templates, startCreating = false, initialTempla
     }
   };
 
+  const selectTemplate = (id: string) => {
+    void navigate({ to: "/templates/$templateId", params: { templateId: id } });
+  };
+  const createTemplate = () => void navigate({ to: "/templates/new" });
+  const signOut = () => void authClient.signOut();
   const header = (
     <Header
       templates={templates}
       selectedTemplateId={selectedTemplateId}
-      onSelectTemplate={(id) => {
-        void navigate({ to: "/templates/$templateId", params: { templateId: id } });
-      }}
-      onSignOut={() => void authClient.signOut()}
-      onCreateTemplate={() => {
-        void navigate({ to: "/templates/new" });
-      }}
+      onSelectTemplate={selectTemplate}
+      onSignOut={signOut}
+      onCreateTemplate={createTemplate}
     />
   );
 
-  if (creating) {
+  if (formMode) {
     return (
       <>
         {header}
-        <TemplateCreator
-          draft={draft}
-          setDraft={setDraft}
-          onCancel={() =>
-            void navigate({
-              to: "/templates/$templateId",
-              params: { templateId: selectedTemplateId },
-            })
-          }
-          onSave={saveTemplate}
-          emptyField={emptyField}
-        />
+        <TemplateWorkspace
+          templates={templates}
+          selectedTemplateId={selectedTemplateId}
+          onSelectTemplate={selectTemplate}
+          onCreateTemplate={createTemplate}
+          onSignOut={signOut}
+        >
+          <TemplateCreator
+            draft={draft}
+            mode={formMode}
+            setDraft={setDraft}
+            onCancel={() =>
+              void navigate({
+                to: "/templates/$templateId",
+                params: { templateId: selectedTemplateId },
+              })
+            }
+            onSave={saveTemplate}
+            onDelete={formMode === "edit" ? deleteTemplate : undefined}
+            emptyField={emptyField}
+          />
+        </TemplateWorkspace>
       </>
     );
   }
@@ -155,9 +202,15 @@ export function TemplateScreen({ templates, startCreating = false, initialTempla
     return (
       <>
         {header}
-        <main className="mx-auto max-w-7xl px-5 py-20 text-muted-foreground">
-          Loading template…
-        </main>
+        <TemplateWorkspace
+          templates={templates}
+          selectedTemplateId={selectedTemplateId}
+          onSelectTemplate={selectTemplate}
+          onCreateTemplate={createTemplate}
+          onSignOut={signOut}
+        >
+          <TemplateDetailSkeleton />
+        </TemplateWorkspace>
       </>
     );
   }
@@ -177,49 +230,60 @@ export function TemplateScreen({ templates, startCreating = false, initialTempla
   return (
     <>
       {header}
-      <TemplateDetail
-        template={template}
-        loading={false}
-        segments={segments}
-        values={values}
-        update={(key, value) => {
-          if (!startedTemplateIds.current.has(template.id)) {
-            startedTemplateIds.current.add(template.id);
-            track("form_started", template.id);
+      <TemplateWorkspace
+        templates={templates}
+        selectedTemplateId={selectedTemplateId}
+        onSelectTemplate={selectTemplate}
+        onCreateTemplate={createTemplate}
+        onSignOut={signOut}
+      >
+        <TemplateDetail
+          template={template}
+          segments={segments}
+          values={values}
+          update={(key, value) => {
+            if (!startedTemplateIds.current.has(template.id)) {
+              startedTemplateIds.current.add(template.id);
+              track("form_started", template.id);
+            }
+            setValues((current) => ({ ...current, [key]: value }));
+          }}
+          copied={copied}
+          onCopy={async () => {
+            if (!ready) return toast.error("Complete the required fields first");
+            try {
+              const result = await compileMutation.mutateAsync();
+              await navigator.clipboard?.writeText(result.text);
+              setCopied(true);
+              track("prompt_copied", template.id);
+              toast.success("Prompt copied");
+              setTimeout(() => setCopied(false), 1800);
+            } catch {
+              toast.error("Could not compile this prompt");
+            }
+          }}
+          saved={saved}
+          onSavePreset={() => {
+            if (template.isExample) return startTemplateDraft();
+            if (!ready) return toast.error("Complete the required fields first");
+            setSaved(true);
+            toast.success("Preset saved to your shelf");
+          }}
+          onClearAnswers={() => setValues(emptyValues(template))}
+          onEdit={startTemplateDraft}
+          onVersionRestored={
+            template.isExample
+              ? undefined
+              : (restored) => {
+                  queryClient.setQueryData(["templates", restored.id], restored);
+                  void queryClient.invalidateQueries({ queryKey: ["templates"] });
+                  setValues(emptyValues(restored));
+                  toast.success(`Restored as version ${restored.version}`);
+                }
           }
-          setValues((current) => ({ ...current, [key]: value }));
-        }}
-        copied={copied}
-        onCopy={async () => {
-          if (!ready) return toast.error("Complete the required fields first");
-          try {
-            const result = await compileMutation.mutateAsync();
-            await navigator.clipboard?.writeText(result.text);
-            setCopied(true);
-            track("prompt_copied", template.id);
-            toast.success("Prompt copied");
-            setTimeout(() => setCopied(false), 1800);
-          } catch {
-            toast.error("Could not compile this prompt");
-          }
-        }}
-        saved={saved}
-        onSavePreset={() => {
-          if (!ready) return toast.error("Complete the required fields first");
-          setSaved(true);
-          toast.success("Preset saved to your shelf");
-        }}
-        onEdit={() => {
-          setDraft({
-            title: template.title,
-            description: template.description,
-            body: template.body,
-            fields: template.fields,
-          });
-          setEditing(true);
-          setCreating(true);
-        }}
-      />
+          variant={template.isExample ? "example" : "owned"}
+        />
+      </TemplateWorkspace>
     </>
   );
 }
