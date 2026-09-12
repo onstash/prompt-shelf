@@ -197,6 +197,10 @@ export function TemplateDetail({
 }: Props) {
   const fields = template?.fields ?? [];
   const isExample = variant === "example";
+  const versionHistory =
+    template && template.version > 1 && onVersionRestored ? (
+      <TemplateVersionHistory template={template} onRestored={onVersionRestored} />
+    ) : null;
 
   return (
     <main className="mx-auto max-w-7xl px-5 py-10">
@@ -206,7 +210,7 @@ export function TemplateDetail({
             Example
           </Badge>
         ) : null}
-        <h1 className="text-4xl font-semibold tracking-[-.055em] sm:text-5xl">
+        <h1 className="break-words text-4xl font-semibold tracking-[-.055em] [overflow-wrap:anywhere] sm:text-5xl">
           {template?.title ?? "Untitled template"}
         </h1>
         <p className="mt-4 text-lg leading-8 text-muted-foreground">
@@ -232,6 +236,7 @@ export function TemplateDetail({
               <SheetTrigger render={<Button variant="outline" className="lg:hidden" />}>
                 <SlidersHorizontal data-icon="inline-start" /> Customize
               </SheetTrigger>
+              {versionHistory}
             </PromptPreview>
             <SheetContent
               side="bottom"
@@ -285,14 +290,11 @@ export function TemplateDetail({
             onCopy={onCopy}
             onEdit={isExample ? undefined : onEdit}
             revisionLabel={revisionLabel(template)}
-          />
+          >
+            {versionHistory}
+          </PromptPreview>
         )}
       </div>
-      {template && template.version > 1 && onVersionRestored ? (
-        <div className="mt-5">
-          <TemplateVersionHistory template={template} onRestored={onVersionRestored} />
-        </div>
-      ) : null}
     </main>
   );
 }

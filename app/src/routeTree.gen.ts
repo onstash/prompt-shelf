@@ -17,7 +17,7 @@ import { Route as ExamplesExampleIdRouteImport } from './routes/examples.$exampl
 import { Route as TemplatesIndexRouteImport } from './routes/templates.index'
 import { Route as TemplatesTemplateIdRouteImport } from './routes/templates.$templateId'
 import { Route as TemplatesNewRouteImport } from './routes/templates.new'
-import { Route as TemplatesTemplateIdEditRouteImport } from './routes/templates.$templateId.edit'
+import { Route as TemplatesTemplateIdEditRouteImport } from './routes/templates.$templateId_.edit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -60,9 +60,9 @@ const TemplatesNewRoute = TemplatesNewRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const TemplatesTemplateIdEditRoute = TemplatesTemplateIdEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => TemplatesTemplateIdRoute,
+  id: '/templates/$templateId_/edit',
+  path: '/templates/$templateId/edit',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -71,7 +71,7 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/api/$': typeof ApiSplatRoute
   '/examples/$exampleId': typeof ExamplesExampleIdRoute
-  '/templates/$templateId': typeof TemplatesTemplateIdRouteWithChildren
+  '/templates/$templateId': typeof TemplatesTemplateIdRoute
   '/templates/new': typeof TemplatesNewRoute
   '/templates/': typeof TemplatesIndexRoute
   '/templates/$templateId/edit': typeof TemplatesTemplateIdEditRoute
@@ -82,7 +82,7 @@ export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/api/$': typeof ApiSplatRoute
   '/examples/$exampleId': typeof ExamplesExampleIdRoute
-  '/templates/$templateId': typeof TemplatesTemplateIdRouteWithChildren
+  '/templates/$templateId': typeof TemplatesTemplateIdRoute
   '/templates/new': typeof TemplatesNewRoute
   '/templates': typeof TemplatesIndexRoute
   '/templates/$templateId/edit': typeof TemplatesTemplateIdEditRoute
@@ -94,10 +94,10 @@ export interface FileRoutesById {
   '/sign-in': typeof SignInRoute
   '/api/$': typeof ApiSplatRoute
   '/examples/$exampleId': typeof ExamplesExampleIdRoute
-  '/templates/$templateId': typeof TemplatesTemplateIdRouteWithChildren
+  '/templates/$templateId': typeof TemplatesTemplateIdRoute
   '/templates/new': typeof TemplatesNewRoute
   '/templates/': typeof TemplatesIndexRoute
-  '/templates/$templateId/edit': typeof TemplatesTemplateIdEditRoute
+  '/templates/$templateId_/edit': typeof TemplatesTemplateIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -132,7 +132,7 @@ export interface FileRouteTypes {
     | '/templates/$templateId'
     | '/templates/new'
     | '/templates/'
-    | '/templates/$templateId/edit'
+    | '/templates/$templateId_/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -141,9 +141,10 @@ export interface RootRouteChildren {
   SignInRoute: typeof SignInRoute
   ApiSplatRoute: typeof ApiSplatRoute
   ExamplesExampleIdRoute: typeof ExamplesExampleIdRoute
-  TemplatesTemplateIdRoute: typeof TemplatesTemplateIdRouteWithChildren
+  TemplatesTemplateIdRoute: typeof TemplatesTemplateIdRoute
   TemplatesNewRoute: typeof TemplatesNewRoute
   TemplatesIndexRoute: typeof TemplatesIndexRoute
+  TemplatesTemplateIdEditRoute: typeof TemplatesTemplateIdEditRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -204,26 +205,15 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TemplatesNewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/templates/$templateId/edit': {
-      id: '/templates/$templateId/edit'
-      path: '/edit'
+    '/templates/$templateId_/edit': {
+      id: '/templates/$templateId_/edit'
+      path: '/templates/$templateId/edit'
       fullPath: '/templates/$templateId/edit'
       preLoaderRoute: typeof TemplatesTemplateIdEditRouteImport
-      parentRoute: typeof TemplatesTemplateIdRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
-
-interface TemplatesTemplateIdRouteChildren {
-  TemplatesTemplateIdEditRoute: typeof TemplatesTemplateIdEditRoute
-}
-
-const TemplatesTemplateIdRouteChildren: TemplatesTemplateIdRouteChildren = {
-  TemplatesTemplateIdEditRoute: TemplatesTemplateIdEditRoute,
-}
-
-const TemplatesTemplateIdRouteWithChildren =
-  TemplatesTemplateIdRoute._addFileChildren(TemplatesTemplateIdRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -231,9 +221,10 @@ const rootRouteChildren: RootRouteChildren = {
   SignInRoute: SignInRoute,
   ApiSplatRoute: ApiSplatRoute,
   ExamplesExampleIdRoute: ExamplesExampleIdRoute,
-  TemplatesTemplateIdRoute: TemplatesTemplateIdRouteWithChildren,
+  TemplatesTemplateIdRoute: TemplatesTemplateIdRoute,
   TemplatesNewRoute: TemplatesNewRoute,
   TemplatesIndexRoute: TemplatesIndexRoute,
+  TemplatesTemplateIdEditRoute: TemplatesTemplateIdEditRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
