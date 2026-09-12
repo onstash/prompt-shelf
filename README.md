@@ -131,7 +131,7 @@ More context is recorded in [`docs/decisions`](docs/decisions) and [`AGENTS.md`]
 
 ## Releases
 
-[Release Please](https://github.com/googleapis/release-please) generates the root `CHANGELOG.md`, Semantic Version tags such as `v0.1.0`, and GitHub Releases from Conventional Commits. See [the release guide](docs/releases.md).
+[Release Please](https://github.com/googleapis/release-please) generates `app/CHANGELOG.md`, Semantic Version tags such as `v0.1.0`, and GitHub Releases from Conventional Commits. See [the release guide](docs/releases.md).
 
 ## Contributing
 
