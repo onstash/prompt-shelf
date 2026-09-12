@@ -17,8 +17,10 @@ export function WelcomeScreen({ onCreate, onExample }: WelcomeScreenProps) {
           result to any AI tool.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <Button onClick={onCreate}>Create your first template</Button>
-          <Button variant="outline" onClick={onExample}>
+          <Button onClick={onCreate} size="lg">
+            Create your first template
+          </Button>
+          <Button variant="outline" size="lg" onClick={onExample}>
             Explore an example
           </Button>
         </div>
@@ -32,7 +34,7 @@ export function WelcomeScreen({ onCreate, onExample }: WelcomeScreenProps) {
           <div key={number} className="border-t border-black/[.12] pt-4">
             <p className="text-xs font-semibold text-muted-foreground">{number}</p>
             <h2 className="mt-8 font-semibold">{title}</h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
+            <span className="mt-2 text-sm leading-6 text-muted-foreground">{description}</span>
           </div>
         ))}
       </div>

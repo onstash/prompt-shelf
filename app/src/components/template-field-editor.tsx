@@ -27,7 +27,7 @@ export function TemplateFieldEditor({ draft, setDraft, emptyField }: Props) {
         <Button
           type="button"
           variant="outline"
-          size="sm"
+          size="lg"
           onClick={() => setDraft({ ...draft, fields: [...draft.fields, emptyField()] })}
         >
           <Plus data-icon="inline-start" /> Add field
@@ -99,7 +99,7 @@ export function TemplateFieldEditor({ draft, setDraft, emptyField }: Props) {
             <Button
               type="button"
               variant="ghost"
-              size="sm"
+              size="lg"
               className="ml-auto text-destructive"
               onClick={() =>
                 setDraft({

@@ -17,16 +17,16 @@ export function PublicHeader({ onCreateTemplate, onOpenShelf, onSignOut }: Props
         </Link>
         <nav className="flex items-center gap-2">
           {onOpenShelf ? (
-            <Button variant="ghost" size="sm" aria-label="My shelf" onClick={onOpenShelf}>
+            <Button variant="ghost" size="lg" aria-label="My shelf" onClick={onOpenShelf}>
               <Library />
               <span className="hidden sm:inline">My shelf</span>
             </Button>
           ) : null}
-          <Button variant="outline" size="sm" onClick={onCreateTemplate}>
+          <Button variant="outline" size="lg" onClick={onCreateTemplate}>
             <Plus data-icon="inline-start" /> New template
           </Button>
           {onSignOut ? (
-            <Button variant="ghost" size="sm" aria-label="Sign out" onClick={onSignOut}>
+            <Button variant="ghost" size="lg" aria-label="Sign out" onClick={onSignOut}>
               <LogOut />
               <span className="hidden sm:inline">Sign out</span>
             </Button>
