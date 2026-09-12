@@ -1,17 +1,24 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { PublicPageHeader } from "@/components/public-page-header";
 import { PageContainer } from "@/containers/page-container";
-import { publicPageHead } from "@/lib/seo";
+import { homeStructuredData, publicPageHead } from "@/lib/seo";
 import { WelcomeScreen } from "@/screens/welcome-screen";
 
 export const Route = createFileRoute("/")({
-  head: () =>
-    publicPageHead({
-      title: "Prompt Shelf — Reusable AI Prompt Templates",
+  head: () => ({
+    ...publicPageHead({
+      title: "Prompt Shelf — Reusable AI Prompt Templates with Variables",
       description:
-        "Create reusable AI prompt templates with variables, then fill them in and copy the finished prompt into any AI tool.",
+        "Create reusable AI prompt templates with typed variables. Fill a structured form, preview the compiled prompt, then copy it into any AI tool.",
       path: "/",
     }),
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify(homeStructuredData),
+      },
+    ],
+  }),
   component: HomeRoute,
 });
 

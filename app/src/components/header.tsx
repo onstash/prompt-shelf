@@ -49,10 +49,10 @@ export function Header({
           </Link>
           <nav className="flex items-center gap-2">
             {templateSelect(false)}
-            <Button variant="outline" size="sm" onClick={onCreateTemplate}>
+            <Button variant="outline" size="lg" onClick={onCreateTemplate}>
               <Plus data-icon="inline-start" /> New template
             </Button>
-            <Button variant="ghost" size="sm" aria-label="Sign out" onClick={onSignOut}>
+            <Button variant="ghost" size="lg" aria-label="Sign out" onClick={onSignOut}>
               <LogOut />
               <span className="hidden md:inline">Sign out</span>
             </Button>

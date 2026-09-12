@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { AuthScreen } from "@/screens/auth-screen";
-import { PublicPageHeader } from "@/components/public-page-header";
 import { PageContainer } from "@/containers/page-container";
 import { api } from "@/lib/api";
 import { authClient } from "@/lib/auth";
@@ -30,7 +29,6 @@ export function ShelfScreen({ initialTemplateId, startCreating = false }: Props)
   if (!session.data) {
     return (
       <PageContainer>
-        <PublicPageHeader />
         <AuthScreen />
       </PageContainer>
     );

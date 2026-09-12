@@ -38,7 +38,7 @@ export function AuthScreen() {
             {error}
           </p>
         ) : null}
-        <Button className="w-full" disabled={pending} onClick={signIn}>
+        <Button className="w-full text-md" size="lg" disabled={pending} onClick={signIn}>
           {pending ? "Opening Google…" : "Continue with Google"}
         </Button>
       </div>
