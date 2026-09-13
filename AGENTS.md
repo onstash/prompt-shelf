@@ -2,6 +2,8 @@
 
 Instructions for coding agents working in this repository.
 
+Read [`MEMORY.md`](./MEMORY.md) before planning, implementing, or reporting changes. It records prior mistakes and required corrective practices.
+
 ## Product boundaries
 
 Prompt Shelf is a general-purpose prompt workflow manager. Users define reusable templates, fill typed variables, preview deterministic output, and copy that output into an external AI tool.

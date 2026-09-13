@@ -27,8 +27,8 @@ export function PromptPreview({
         <CardTitle className="text-base">Live prompt</CardTitle>
         <span className="text-xs text-muted-foreground">{revisionLabel}</span>
       </CardHeader>
-      <CardContent className="min-h-0 flex-1 overflow-y-auto bg-white px-6 py-7">
-        <div className="min-w-0 whitespace-pre-wrap break-words font-mono text-[14px] leading-8 text-[#45464a] [overflow-wrap:anywhere] sm:text-[15px] py-3">
+      <CardContent className="min-h-0 flex-1 overflow-y-auto bg-white px-6 py-6">
+        <div className="min-w-0 whitespace-pre-wrap break-words font-mono text-[14px] leading-8 text-[#45464a] [overflow-wrap:anywhere] sm:text-[15px]">
           {segments.length > 0
             ? segments.map((segment, index) =>
                 segment.type === "value" ? (

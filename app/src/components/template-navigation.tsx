@@ -86,7 +86,12 @@ export function TemplateNavigation({
         <h2 className="text-sm font-semibold">My shelf</h2>
         <span className="text-xs text-muted-foreground">{templates.length}</span>
       </div>
-      <Button variant="outline" className="mx-1 justify-start" onClick={onCreateTemplate}>
+      <Button
+        variant={selectedTemplateId ? "outline" : "secondary"}
+        className="mx-1 justify-start"
+        aria-current={selectedTemplateId ? undefined : "page"}
+        onClick={onCreateTemplate}
+      >
         <Plus data-icon="inline-start" /> New template
       </Button>
       <nav aria-label="Templates" className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto">

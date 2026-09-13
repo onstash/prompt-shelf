@@ -24,7 +24,7 @@ export function AuthScreen() {
   }
 
   return (
-    <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-sm items-center px-5 py-12">
+    <main className="mx-auto flex min-h-[calc(100dvh-4rem)] max-w-sm items-center px-5 py-12">
       <div className="w-full space-y-6">
         <div>
           <p className="text-sm font-semibold">Prompt Shelf</p>

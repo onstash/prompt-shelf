@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { LoaderCircle } from "lucide-react";
 import { Header } from "@/components/header";
 import { PublicHeader } from "@/components/public-header";
 import { TemplateWorkspace } from "@/components/template-workspace";
@@ -56,6 +57,20 @@ function HomeRoute() {
       onExample={openExample}
     />
   );
+
+  if (session.isPending) {
+    return (
+      <PageContainer>
+        <main
+          className="flex min-h-[100dvh] items-center justify-center gap-2 text-sm text-muted-foreground"
+          role="status"
+        >
+          <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
+          Loading your shelf…
+        </main>
+      </PageContainer>
+    );
+  }
 
   if (!session.data) {
     return (

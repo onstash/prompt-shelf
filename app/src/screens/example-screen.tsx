@@ -76,8 +76,7 @@ export function ExampleScreen({ onBack, onUseExample }: Props) {
           track("prompt_copied");
           toast.success("Prompt copied");
         }}
-        saved={false}
-        onSavePreset={onUseExample}
+        onAddToShelf={onUseExample}
         onClearAnswers={() => setValues({})}
         onEdit={onUseExample}
         variant="example"

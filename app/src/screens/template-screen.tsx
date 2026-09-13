@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Header } from "@/components/header";
+import { Button } from "@/components/ui/button";
 import { TemplateCreator, type TemplateDraft } from "@/components/template-creator";
 import { TemplateDetail } from "@/components/template-detail";
 import { TemplateDetailSkeleton } from "@/components/template-detail-skeleton";
@@ -20,7 +21,7 @@ type Values = Record<string, string>;
 const emptyField = (): TemplateField => ({
   key: "",
   label: "",
-  type: "text",
+  type: "textarea",
   required: false,
   options: [],
 });
@@ -38,9 +39,14 @@ const emptyValues = (template?: Template) =>
 export function TemplateScreen({ templates, mode, initialTemplateId }: Props) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const requestedTemplate = templates.find((template) => template.id === initialTemplateId);
   const initialTemplate =
-    templates.find((template) => template.id === initialTemplateId) ?? templates[0];
-  const selectedTemplateId = initialTemplate?.id ?? "clear-first-draft";
+    mode === "create"
+      ? undefined
+      : mode === "edit"
+        ? requestedTemplate
+        : (requestedTemplate ?? templates[0]);
+  const selectedTemplateId = initialTemplate?.id ?? "";
   const [formMode, setFormMode] = useState<"create" | "edit" | null>(mode === "view" ? null : mode);
   const [draft, setDraft] = useState<TemplateDraft>(() =>
     mode === "edit" && initialTemplate
@@ -56,7 +62,6 @@ export function TemplateScreen({ templates, mode, initialTemplateId }: Props) {
   const [segments, setSegments] = useState<
     Array<{ type: "static" | "value"; text: string; key?: string }>
   >([]);
-  const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
   const openedTemplateIds = useRef(new Set<string>());
   const startedTemplateIds = useRef(new Set<string>());
@@ -77,6 +82,12 @@ export function TemplateScreen({ templates, mode, initialTemplateId }: Props) {
     mutationFn: (previewValues?: Values) =>
       api.compileTemplate(selectedTemplateId, previewValues ?? values),
     onSuccess: (result) => setSegments(result.segments),
+  });
+  const saveMutation = useMutation({
+    mutationFn: () =>
+      formMode === "edit"
+        ? api.updateTemplate(selectedTemplateId, draft)
+        : api.createTemplate(draft),
   });
 
   useEffect(() => {
@@ -135,10 +146,7 @@ export function TemplateScreen({ templates, mode, initialTemplateId }: Props) {
     const keys = draft.fields.map((field) => field.key.trim());
     if (new Set(keys).size !== keys.length) return toast.error("Field keys must be unique");
     try {
-      const savedTemplate =
-        formMode === "edit"
-          ? await api.updateTemplate(selectedTemplateId, draft)
-          : await api.createTemplate(draft);
+      const savedTemplate = await saveMutation.mutateAsync();
       await queryClient.invalidateQueries({ queryKey: ["templates"] });
       setValues(emptyValues(savedTemplate));
       setFormMode(null);
@@ -168,6 +176,31 @@ export function TemplateScreen({ templates, mode, initialTemplateId }: Props) {
     />
   );
 
+  if (formMode === "edit" && !initialTemplate) {
+    return (
+      <>
+        {header}
+        <TemplateWorkspace
+          templates={templates}
+          selectedTemplateId=""
+          onSelectTemplate={selectTemplate}
+          onCreateTemplate={createTemplate}
+          onSignOut={signOut}
+        >
+          <main className="mx-auto max-w-7xl px-5 py-20">
+            <h1 className="text-2xl font-semibold">Template not found</h1>
+            <p className="mt-2 text-muted-foreground">
+              It may have been deleted or you may not have access to it.
+            </p>
+            <Button className="mt-6" onClick={() => void navigate({ to: "/templates" })}>
+              Back to my shelf
+            </Button>
+          </main>
+        </TemplateWorkspace>
+      </>
+    );
+  }
+
   if (formMode) {
     return (
       <>
@@ -184,12 +217,17 @@ export function TemplateScreen({ templates, mode, initialTemplateId }: Props) {
             mode={formMode}
             setDraft={setDraft}
             onCancel={() =>
-              void navigate({
-                to: "/templates/$templateId",
-                params: { templateId: selectedTemplateId },
-              })
+              void navigate(
+                formMode === "create"
+                  ? { to: "/templates" }
+                  : {
+                      to: "/templates/$templateId",
+                      params: { templateId: selectedTemplateId },
+                    },
+              )
             }
             onSave={saveTemplate}
+            isSaving={saveMutation.isPending}
             onDelete={formMode === "edit" ? deleteTemplate : undefined}
             emptyField={emptyField}
           />
@@ -262,25 +300,9 @@ export function TemplateScreen({ templates, mode, initialTemplateId }: Props) {
               toast.error("Could not compile this prompt");
             }
           }}
-          saved={saved}
-          onSavePreset={() => {
-            if (template.isExample) return startTemplateDraft();
-            if (!ready) return toast.error("Complete the required fields first");
-            setSaved(true);
-            toast.success("Preset saved to your shelf");
-          }}
+          onAddToShelf={template.isExample ? startTemplateDraft : undefined}
           onClearAnswers={() => setValues(emptyValues(template))}
           onEdit={startTemplateDraft}
-          onVersionRestored={
-            template.isExample
-              ? undefined
-              : (restored) => {
-                  queryClient.setQueryData(["templates", restored.id], restored);
-                  void queryClient.invalidateQueries({ queryKey: ["templates"] });
-                  setValues(emptyValues(restored));
-                  toast.success(`Restored as version ${restored.version}`);
-                }
-          }
           variant={template.isExample ? "example" : "owned"}
         />
       </TemplateWorkspace>

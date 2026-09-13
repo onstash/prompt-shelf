@@ -17,13 +17,13 @@ export function WelcomeScreen({
 
   return (
     <main className="mx-auto max-w-5xl px-5 py-10">
-      <div className="max-w-2xl">
-        <h1 className="text-4xl font-semibold tracking-[-.06em] sm:text-6xl">
+      <div className="max-w-2xl lg:min-h-[318px]">
+        <h1 className="text-balance text-4xl leading-[1.05] font-semibold tracking-[-.055em] sm:text-6xl lg:min-h-[2.1em]">
           {returning
             ? "Your reusable workflows are ready."
             : "Turn repeatable thinking into reusable workflows."}
         </h1>
-        <p className="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">
+        <p className="mt-6 max-w-xl text-lg leading-8 text-muted-foreground lg:min-h-16">
           {returning
             ? "Choose a template from your shelf to customize it, preview the result, and copy it into any AI tool."
             : "Create prompt templates with variables, fill them in when you need them, and copy a clear result to any AI tool."}
@@ -31,10 +31,15 @@ export function WelcomeScreen({
         <div className="mt-8 flex flex-wrap gap-3">
           {returning ? (
             <>
-              <Button onClick={onOpenShelf} size="lg" className="lg:hidden">
+              <Button onClick={onOpenShelf} size="lg" className="max-sm:w-full lg:hidden">
                 Open my shelf
               </Button>
-              <Button variant="outline" size="lg" onClick={onCreate} className="lg:hidden">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={onCreate}
+                className="max-sm:w-full lg:hidden"
+              >
                 New template
               </Button>
               <Button size="lg" onClick={onCreate} className="hidden lg:inline-flex">
@@ -43,10 +48,10 @@ export function WelcomeScreen({
             </>
           ) : (
             <>
-              <Button onClick={onCreate} size="lg">
+              <Button onClick={onCreate} size="lg" className="max-sm:w-full">
                 Create your first template
               </Button>
-              <Button variant="outline" size="lg" onClick={onExample}>
+              <Button variant="outline" size="lg" onClick={onExample} className="max-sm:w-full">
                 Explore an example
               </Button>
             </>
