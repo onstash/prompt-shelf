@@ -38,7 +38,6 @@ export interface TemplateRepository {
   update(workspaceId: string, id: string, input: TemplateInput): Promise<Template | null>;
   delete(workspaceId: string, id: string): Promise<boolean>;
   listRevisions(workspaceId: string, id: string): Promise<TemplateRevision[]>;
-  restoreRevision(workspaceId: string, id: string, version: number): Promise<Template | null>;
 }
 
 type TemplateRow = {
@@ -153,30 +152,6 @@ export class D1TemplateRepository implements TemplateRepository {
       fields: JSON.parse(row.fields_json) as Field[],
       createdAt: row.created_at,
     }));
-  }
-
-  async restoreRevision(
-    workspaceId: string,
-    id: string,
-    version: number,
-  ): Promise<Template | null> {
-    const current = await this.find(workspaceId, id);
-    if (!current || current.isExample) return null;
-    const revision = await this.db
-      .prepare(
-        `SELECT body, fields_json FROM template_revisions WHERE template_id = ? AND version = ?`,
-      )
-      .bind(id, version)
-      .first<{ body: string; fields_json: string }>();
-    if (!revision) return null;
-    // SAFETY: fields_json is written only from validated template field arrays.
-    return this.update(workspaceId, id, {
-      title: current.title,
-      description: current.description,
-      category: current.category,
-      body: revision.body,
-      fields: JSON.parse(revision.fields_json) as Field[],
-    });
   }
 
   async delete(workspaceId: string, id: string): Promise<boolean> {

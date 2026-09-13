@@ -97,8 +97,6 @@ export const api = {
     }),
   listTemplateRevisions: (id: string) =>
     request<TemplateRevision[]>(`/api/templates/${id}/revisions`),
-  restoreTemplateRevision: (id: string, version: number) =>
-    request<Template>(`/api/templates/${id}/revisions/${version}/restore`, { method: "POST" }),
   deleteTemplate: (id: string) =>
     request<{ deleted: true }>(`/api/templates/${id}`, { method: "DELETE" }),
   updateTemplate: (

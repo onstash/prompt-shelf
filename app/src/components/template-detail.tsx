@@ -57,8 +57,7 @@ type CustomizeProps = {
   fields: Template["fields"];
   values: Values;
   update: (key: string, value: string) => void;
-  saved: boolean;
-  onSavePreset: () => void;
+  onAddToShelf?: () => void;
   onClearAnswers: () => void;
   variant: "owned" | "example";
   idPrefix: string;
@@ -68,12 +67,27 @@ function CustomizeForm({
   fields,
   values,
   update,
-  saved,
-  onSavePreset,
+  onAddToShelf,
   onClearAnswers,
   variant,
   idPrefix,
 }: CustomizeProps) {
+  if (fields.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-border px-5 py-10 text-center">
+        <p className="text-sm font-medium">No fields to complete</p>
+        <p className="mx-auto mt-2 max-w-64 text-sm leading-6 text-muted-foreground">
+          This prompt is ready to copy as written.
+        </p>
+        {variant === "example" ? (
+          <Button className="mt-5" variant="outline" onClick={onAddToShelf}>
+            <Bookmark data-icon="inline-start" /> Add to my shelf
+          </Button>
+        ) : null}
+      </div>
+    );
+  }
+
   const ready = fields
     .filter((field) => field.required)
     .every((field) => values[field.key]?.trim());
@@ -157,10 +171,11 @@ function CustomizeForm({
         >
           {ready ? "Ready to copy" : "Start with the required fields"}
         </span>
-        <Button variant="outline" onClick={onSavePreset}>
-          <Bookmark data-icon="inline-start" />
-          {variant === "example" ? "Add to my shelf" : saved ? "Saved" : "Save preset"}
-        </Button>
+        {variant === "example" ? (
+          <Button variant="outline" onClick={onAddToShelf}>
+            <Bookmark data-icon="inline-start" /> Add to my shelf
+          </Button>
+        ) : null}
       </div>
     </>
   );
@@ -173,11 +188,9 @@ type Props = {
   update: (key: string, value: string) => void;
   copied: boolean;
   onCopy: () => void;
-  saved: boolean;
-  onSavePreset: () => void;
+  onAddToShelf?: () => void;
   onClearAnswers: () => void;
   onEdit: () => void;
-  onVersionRestored?: (template: Template) => void;
   variant?: "owned" | "example";
 };
 
@@ -188,19 +201,15 @@ export function TemplateDetail({
   update,
   copied,
   onCopy,
-  saved,
-  onSavePreset,
+  onAddToShelf,
   onClearAnswers,
   onEdit,
-  onVersionRestored,
   variant = "owned",
 }: Props) {
   const fields = template?.fields ?? [];
   const isExample = variant === "example";
   const versionHistory =
-    template && template.version > 1 && onVersionRestored ? (
-      <TemplateVersionHistory template={template} onRestored={onVersionRestored} />
-    ) : null;
+    template && template.version > 1 ? <TemplateVersionHistory template={template} /> : null;
 
   return (
     <main className="mx-auto max-w-7xl px-5 py-10">
@@ -217,73 +226,8 @@ export function TemplateDetail({
           {template?.description || "Fill in the fields to build a prompt you can copy anywhere."}
         </p>
       </section>
-      <div
-        className={
-          fields.length > 0
-            ? "grid min-w-0 items-stretch gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,.8fr)]"
-            : "min-w-0"
-        }
-      >
-        {fields.length > 0 ? (
-          <Sheet>
-            <PromptPreview
-              segments={segments}
-              copied={copied}
-              onCopy={onCopy}
-              onEdit={isExample ? undefined : onEdit}
-              revisionLabel={revisionLabel(template)}
-            >
-              <SheetTrigger render={<Button variant="outline" className="lg:hidden" />}>
-                <SlidersHorizontal data-icon="inline-start" /> Customize
-              </SheetTrigger>
-              {versionHistory}
-            </PromptPreview>
-            <SheetContent
-              side="bottom"
-              className="max-h-[90dvh] rounded-t-2xl lg:hidden"
-              showCloseButton
-            >
-              <SheetHeader className="border-b pr-12">
-                <SheetTitle>Customize</SheetTitle>
-                <SheetDescription>
-                  Complete the {fields.length} fields to build your prompt.
-                </SheetDescription>
-              </SheetHeader>
-              <div className="min-h-0 overflow-y-auto px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-                <CustomizeForm
-                  fields={fields}
-                  values={values}
-                  update={update}
-                  saved={saved}
-                  onSavePreset={onSavePreset}
-                  onClearAnswers={onClearAnswers}
-                  variant={variant}
-                  idPrefix="mobile-field"
-                />
-              </div>
-            </SheetContent>
-            <Card className="hidden h-[clamp(360px,55dvh,560px)] min-w-0 overflow-hidden border-black/[.08] shadow-sm lg:flex lg:flex-col">
-              <CardHeader className="border-b bg-white/60 px-6 py-4">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">Customize</CardTitle>
-                  <span className="text-xs text-muted-foreground">{fields.length} fields</span>
-                </div>
-              </CardHeader>
-              <CardContent className="min-h-0 flex-1 overflow-y-auto bg-white px-6 py-6">
-                <CustomizeForm
-                  fields={fields}
-                  values={values}
-                  update={update}
-                  saved={saved}
-                  onSavePreset={onSavePreset}
-                  onClearAnswers={onClearAnswers}
-                  variant={variant}
-                  idPrefix="desktop-field"
-                />
-              </CardContent>
-            </Card>
-          </Sheet>
-        ) : (
+      <div className="grid min-w-0 items-stretch gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,.8fr)]">
+        <Sheet>
           <PromptPreview
             segments={segments}
             copied={copied}
@@ -291,9 +235,58 @@ export function TemplateDetail({
             onEdit={isExample ? undefined : onEdit}
             revisionLabel={revisionLabel(template)}
           >
+            <SheetTrigger render={<Button variant="outline" className="lg:hidden" />}>
+              <SlidersHorizontal data-icon="inline-start" /> Customize
+            </SheetTrigger>
             {versionHistory}
           </PromptPreview>
-        )}
+          <SheetContent
+            side="bottom"
+            className="max-h-[90dvh] rounded-t-2xl lg:hidden"
+            showCloseButton
+          >
+            <SheetHeader className="border-b pr-12">
+              <SheetTitle>Customize</SheetTitle>
+              <SheetDescription>
+                {fields.length === 0
+                  ? "This prompt can be copied without customization."
+                  : `Complete ${fields.length} ${fields.length === 1 ? "field" : "fields"} to build your prompt.`}
+              </SheetDescription>
+            </SheetHeader>
+            <div className="min-h-0 overflow-y-auto px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+              <CustomizeForm
+                fields={fields}
+                values={values}
+                update={update}
+                onAddToShelf={onAddToShelf}
+                onClearAnswers={onClearAnswers}
+                variant={variant}
+                idPrefix="mobile-field"
+              />
+            </div>
+          </SheetContent>
+          <Card className="hidden h-[clamp(360px,55dvh,560px)] min-w-0 overflow-hidden border-black/[.08] shadow-sm lg:flex lg:flex-col">
+            <CardHeader className="border-b bg-white/60 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base">Customize</CardTitle>
+                <span className="text-xs text-muted-foreground">
+                  {fields.length} {fields.length === 1 ? "field" : "fields"}
+                </span>
+              </div>
+            </CardHeader>
+            <CardContent className="min-h-0 flex-1 overflow-y-auto bg-white px-6 py-6">
+              <CustomizeForm
+                fields={fields}
+                values={values}
+                update={update}
+                onAddToShelf={onAddToShelf}
+                onClearAnswers={onClearAnswers}
+                variant={variant}
+                idPrefix="desktop-field"
+              />
+            </CardContent>
+          </Card>
+        </Sheet>
       </div>
     </main>
   );

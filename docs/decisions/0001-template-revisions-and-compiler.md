@@ -23,5 +23,5 @@ Use short text, long text, number, and select fields for the MVP.
 ## Consequences
 
 - The compiler can run locally for live previews and on the server for authoritative validation.
-- Revisions are easy to audit and restore.
+- Revisions remain available for read-only review. Restoration is deferred until its field-schema and saved-answer behavior is clearly defined.
 - Conditional logic, loops, and computed fields are deferred.

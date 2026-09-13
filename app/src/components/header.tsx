@@ -31,7 +31,7 @@ export function Header({
   const [templatesOpen, setTemplatesOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-10 border-b border-black/[.07] bg-[#f8f8f6]/90 backdrop-blur-xl">
+    <header className="sticky top-0 z-10 border-b border-border/70 bg-background/85 backdrop-blur-xl">
       <div className="mx-auto max-w-7xl px-5">
         <div className="flex h-16 items-center gap-2">
           <nav aria-label="Shelf navigation" className="lg:hidden">

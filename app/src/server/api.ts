@@ -153,18 +153,6 @@ app.get("/api/templates/:id/revisions", async (c) => {
   return c.json(await repository.listRevisions(c.get("workspaceId"), template.id));
 });
 
-app.post("/api/templates/:id/revisions/:version/restore", async (c) => {
-  const version = Number(c.req.param("version"));
-  if (!Number.isInteger(version) || version < 1) return c.json({ error: "Invalid revision" }, 422);
-  const repository = new D1TemplateRepository(c.env.DB);
-  const restored = await repository.restoreRevision(
-    c.get("workspaceId"),
-    c.req.param("id"),
-    version,
-  );
-  return restored ? c.json(restored) : c.json({ error: "Template or revision not found" }, 404);
-});
-
 app.delete("/api/templates/:id", async (c) => {
   const repository = new D1TemplateRepository(c.env.DB);
   const deleted = await repository.delete(c.get("workspaceId"), c.req.param("id"));

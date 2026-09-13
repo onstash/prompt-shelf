@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { Trash2 } from "lucide-react";
 import {
   AlertDialog,
@@ -34,6 +35,7 @@ type Props = {
   onSave: () => void;
   onDelete?: () => void;
   emptyField: () => TemplateField;
+  isSaving?: boolean;
 };
 
 export function TemplateCreator({
@@ -44,11 +46,17 @@ export function TemplateCreator({
   onSave,
   onDelete,
   emptyField,
+  isSaving = false,
 }: Props) {
+  const fieldMemory = useRef(new Map(draft.fields.map((field) => [field.key, field] as const)));
+
   const updateBody = (body: string) => {
+    for (const field of draft.fields) fieldMemory.current.set(field.key, field);
+
     const keys = [...body.matchAll(/{{\s*([\w-]+)\s*}}/g)].map((match) => match[1]);
     const fields = [...new Set(keys)].map((key) => {
-      const existing = draft.fields.find((field) => field.key === key);
+      const existing =
+        draft.fields.find((field) => field.key === key) ?? fieldMemory.current.get(key);
       if (existing) return existing;
       return {
         ...emptyField(),
@@ -63,22 +71,27 @@ export function TemplateCreator({
   const isEditing = mode === "edit";
 
   return (
-    <main className="mx-auto max-w-7xl px-5 py-10">
+    <form
+      className="mx-auto max-w-7xl px-5 py-10"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSave();
+      }}
+    >
       <section className="mb-9 max-w-3xl">
         <Badge variant="outline" className="mb-4">
           {isEditing ? "Editing" : "New template"}
         </Badge>
         <h1 className="break-words text-4xl font-semibold tracking-[-.055em] [overflow-wrap:anywhere] sm:text-5xl">
-          {isEditing ? draft.title : "Create a reusable template"}
+          {isEditing ? "Edit template" : "Create template"}
         </h1>
         <p className="mt-4 text-lg leading-8 text-muted-foreground">
-          {isEditing
-            ? "Update the prompt instructions and the fields people complete."
-            : "Write the prompt once, then turn its variables into a form you can reuse."}
+          Write the prompt once. Fields appear automatically as you add variables such as{" "}
+          <code className="rounded bg-muted px-1.5 py-0.5 text-base">{"{{topic}}"}</code>.
         </p>
       </section>
 
-      <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,.8fr)]">
+      <div className="grid min-w-0 items-stretch gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,.8fr)]">
         <Card className="min-w-0 overflow-hidden border-black/[.08] bg-white shadow-sm">
           <CardHeader className="border-b bg-white/60 px-6 py-4">
             <CardTitle className="text-base">Template details</CardTitle>
@@ -91,7 +104,6 @@ export function TemplateCreator({
                 value={draft.title}
                 onChange={(event) => setDraft({ ...draft, title: event.target.value })}
                 placeholder="e.g. Clear first draft"
-                autoFocus={!isEditing}
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -112,7 +124,7 @@ export function TemplateCreator({
               </p>
               <Textarea
                 id="template-body"
-                className="min-h-80 resize-y font-mono text-sm leading-7"
+                purpose="document"
                 value={draft.body}
                 onChange={(event) => updateBody(event.target.value)}
                 placeholder={"Write a concise summary for {{audience}} in a {{tone}} tone."}
@@ -137,7 +149,7 @@ export function TemplateCreator({
       <div className="mt-5 flex flex-wrap items-center gap-2 rounded-xl border border-black/[.08] bg-white p-3 shadow-sm">
         {isEditing && onDelete ? (
           <AlertDialog>
-            <AlertDialogTrigger render={<Button variant="destructive" />}>
+            <AlertDialogTrigger render={<Button type="button" variant="destructive" />}>
               <Trash2 data-icon="inline-start" /> Delete template
             </AlertDialogTrigger>
             <AlertDialogContent>
@@ -157,11 +169,19 @@ export function TemplateCreator({
             </AlertDialogContent>
           </AlertDialog>
         ) : null}
-        <Button variant="ghost" className="ml-auto" onClick={onCancel}>
+        <Button
+          type="button"
+          variant="ghost"
+          className="ml-auto"
+          disabled={isSaving}
+          onClick={onCancel}
+        >
           Cancel
         </Button>
-        <Button onClick={onSave}>{isEditing ? "Save changes" : "Create template"}</Button>
+        <Button type="submit" disabled={isSaving}>
+          {isSaving ? "Saving…" : isEditing ? "Save changes" : "Create template"}
+        </Button>
       </div>
-    </main>
+    </form>
   );
 }
