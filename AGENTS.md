@@ -15,7 +15,7 @@ Prompt Shelf is a general-purpose prompt workflow manager. Users define reusable
 
 ## Architecture
 
-`app/` is the only deployable application. TanStack Start serves SSR pages, static assets, Better Auth, Hono compatibility endpoints, and D1 access from one Cloudflare Worker.
+`app/` is the only deployable application. TanStack Start serves SSR pages, static assets, API routes, Better Auth, and D1 access from one Cloudflare Worker.
 
 Important paths:
 
@@ -24,7 +24,7 @@ app/src/routes/                 File-based routes and route metadata
 app/src/screens/                Page state and orchestration
 app/src/components/             Reusable interface components
 app/src/lib/api.ts              Central browser API client
-app/src/server/api.ts           Hono compatibility API
+app/src/routes/api.$.ts         TanStack Start API route
 app/src/server/auth.ts          Better Auth configuration
 app/src/server/template-repository.ts  D1 persistence
 app/migrations/                 Ordered D1 migrations
