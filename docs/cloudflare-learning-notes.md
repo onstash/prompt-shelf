@@ -10,7 +10,7 @@ Browser
 Cloudflare Worker
   ├── TanStack Start SSR and application routes
   ├── Static browser assets
-  ├── Hono compatibility API routes
+  ├── TanStack Start API routes
   ├── Better Auth and Google OAuth callbacks
   └── Cloudflare D1 access
 ```

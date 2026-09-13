@@ -27,7 +27,7 @@ Prompt Shelf is private by default. It does not execute prompts or store generat
 - [TanStack Start](https://tanstack.com/start) and React 19
 - [TanStack Router](https://tanstack.com/router) and React Query
 - [Base UI](https://base-ui.com/) with Tailwind CSS
-- [Hono](https://hono.dev/) compatibility API routes
+- TanStack Start server API routes
 - [Better Auth](https://www.better-auth.com/) with Google OAuth
 - Cloudflare Workers, static assets, and D1
 
@@ -88,7 +88,7 @@ app/
 ├── public/              Static assets
 ├── src/routes/          TanStack Start file routes
 ├── src/screens/         Route-level UI and orchestration
-├── src/server/          Better Auth, Hono API, and D1 repository
+├── src/server/          Better Auth and D1 repository
 └── wrangler.jsonc       Cloudflare Worker configuration
 docs/decisions/          Architecture decision records
 docs/releases.md         Release process
