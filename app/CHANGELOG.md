@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/onstash/prompt-shelf/compare/v0.3.0...v0.4.0) (2026-09-15)
+
+
+### Features
+
+* add private saved runs ([#17](https://github.com/onstash/prompt-shelf/issues/17)) ([f443af6](https://github.com/onstash/prompt-shelf/commit/f443af6652d903915b01f4a04adc141bfae87697))
+
 ## [0.3.0](https://github.com/onstash/prompt-shelf/compare/v0.2.1...v0.3.0) (2026-09-13)
 
 
