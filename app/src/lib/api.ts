@@ -25,6 +25,22 @@ export type TemplateRevision = {
   fields: TemplateField[];
   createdAt: string;
 };
+export type SavedRunSummary = {
+  id: string;
+  templateId: string;
+  templateVersion: number;
+  templateTitle: string;
+  createdAt: string;
+};
+export type SavedRun = SavedRunSummary & {
+  body: string;
+  fields: TemplateField[];
+  values: Record<string, string>;
+};
+export type SavedRunPage = {
+  runs: SavedRunSummary[];
+  nextCursor: string | null;
+};
 export type CompileResult = {
   text: string;
   segments: Array<{ type: "static" | "value"; text: string; key?: string }>;
@@ -97,6 +113,15 @@ export const api = {
     }),
   listTemplateRevisions: (id: string) =>
     request<TemplateRevision[]>(`/api/templates/${id}/revisions`),
+  createRun: (templateId: string, templateVersion: number, values: Record<string, string>) =>
+    request<SavedRun>(`/api/templates/${templateId}/runs`, {
+      method: "POST",
+      body: JSON.stringify({ templateVersion, values }),
+    }),
+  listRuns: (cursor?: string) =>
+    request<SavedRunPage>(`/api/runs${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ""}`),
+  getRun: (id: string) => request<SavedRun>(`/api/runs/${id}`),
+  deleteRun: (id: string) => request<{ deleted: true }>(`/api/runs/${id}`, { method: "DELETE" }),
   deleteTemplate: (id: string) =>
     request<{ deleted: true }>(`/api/templates/${id}`, { method: "DELETE" }),
   updateTemplate: (

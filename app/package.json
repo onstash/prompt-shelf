@@ -12,7 +12,8 @@
     "lint": "oxlint --config oxlint.config.ts src",
     "format": "oxfmt src --write",
     "format:check": "oxfmt src --check",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "tsc -p tsconfig.test.json && node --test src/lib/*.test.ts src/server/*.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

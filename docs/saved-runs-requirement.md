@@ -2,11 +2,11 @@
 
 ## Status
 
-Required and not yet implemented.
+Implemented for copies of private, user-owned templates. System example copies never create runs.
 
 ## Requirement
 
-Every successful prompt copy must create a private saved run. A run records:
+Every successful prompt copy of a private, user-owned template must create a private saved run. A run records:
 
 - Template ID
 - Exact immutable template revision
@@ -24,6 +24,7 @@ Saved runs are private product data, protected by the authenticated workspace se
 ## Expected behavior
 
 - Create a run only after the prompt is copied successfully.
+- Never create runs for system example copies, whether the user is signed in or signed out.
 - Derive identity and workspace ownership from the server session.
 - Verify workspace access for every create, read, and delete operation.
 - Preserve the exact revision association even after the template changes.
@@ -61,7 +62,8 @@ The compiled prompt can be reproduced deterministically from the immutable revis
 
 ## Acceptance criteria
 
-- Successful Copy creates exactly one run.
+- Successful Copy of a private, user-owned template creates exactly one run.
+- Copying a system example creates no run.
 - Failed Copy creates no run.
 - Zero-field templates create a run with `{}` values.
 - Runs continue to use their original revision after later template edits.
@@ -69,3 +71,20 @@ The compiled prompt can be reproduced deterministically from the immutable revis
 - Revisit and delete controls work on mobile and desktop.
 - Analytics remains best-effort and contains no saved-run content.
 - Focused authorization, workspace-isolation, creation, retrieval, and deletion tests pass.
+
+## Verification matrix
+
+| Acceptance criterion | Evidence |
+| --- | --- |
+| Private Copy creates one run after clipboard success | `copy-and-save-run.test.ts` |
+| System example Copy creates no run | Example copy paths omit run creation; `run-repository.test.ts` rejects examples |
+| Failed clipboard Copy creates no run | `copy-and-save-run.test.ts` |
+| Zero-field values remain `{}` and exact revisions are retained | `run-repository.test.ts` |
+| Unauthenticated run endpoints are rejected | `run-api.test.ts` |
+| Malformed create payloads are rejected | `run-api.test.ts` |
+| Cross-workspace retrieval and deletion are rejected | `run-repository.test.ts` |
+| Older runs remain reachable through bounded pages | `run-repository.test.ts` |
+| Reproduction uses the canonical compiler | `compile-prompt.test.ts`; API and Saved Runs import `compilePrompt` |
+| Run-list errors expose retry | `saved-runs.tsx` error state |
+| Mobile and desktop revisit/delete behavior | Manual verification required before merge |
+| Analytics excludes run content | Source inspection of `trackProductEvent` calls |

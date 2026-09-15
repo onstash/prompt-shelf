@@ -11,6 +11,7 @@
     "db:migrate:local": "npm --prefix app run db:migrate:local",
     "db:migrate:remote": "npm --prefix app run db:migrate:remote",
     "lint": "npm --prefix app run lint",
+    "test": "npm --prefix app run test",
     "format": "npm --prefix app run format",
     "format:check": "npm --prefix app run format:check",
     "prepare": "lefthook install"

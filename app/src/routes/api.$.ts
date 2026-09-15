@@ -1,7 +1,9 @@
 import { env } from "cloudflare:workers";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { compilePrompt } from "@/lib/compile-prompt";
 import { createAuth } from "@/server/auth";
+import { handleRunRequest } from "@/server/run-api";
 import {
   D1TemplateRepository,
   type Template,
@@ -38,24 +40,6 @@ function jsonError(error: string, status: number, details?: { missing: string[] 
   return Response.json({ error, ...details }, { status });
 }
 
-function compile(template: Template, values: Record<string, string>) {
-  const segments: { type: "static" | "value"; text: string; key?: string }[] = [];
-  let last = 0;
-  const token = /{{\s*([\w-]+)\s*}}/g;
-  let match: RegExpExecArray | null;
-
-  while ((match = token.exec(template.body))) {
-    if (match.index > last)
-      segments.push({ type: "static", text: template.body.slice(last, match.index) });
-    segments.push({ type: "value", key: match[1], text: values[match[1]] ?? "" });
-    last = match.index + match[0].length;
-  }
-  if (last < template.body.length)
-    segments.push({ type: "static", text: template.body.slice(last) });
-
-  return { text: segments.map((segment) => segment.text).join(""), segments };
-}
-
 async function handle(request: Request) {
   const url = new URL(request.url);
   const path = url.pathname;
@@ -71,7 +55,7 @@ async function handle(request: Request) {
     if (request.method === "POST" && exampleMatch[2]) {
       // SAFETY: compile treats absent and non-string field values as empty values.
       const values = (await request.json()) as Record<string, string>;
-      return Response.json(compile(example, values));
+      return Response.json(compilePrompt(example.body, values));
     }
     return new Response(null, { status: 405 });
   }
@@ -107,9 +91,13 @@ async function handle(request: Request) {
     return Response.json({ accepted: true }, { status: 202 });
   }
 
-  if (path !== "/api/templates" && !path.startsWith("/api/templates/"))
-    return jsonError("Not found", 404);
+  const isTemplatePath = path === "/api/templates" || path.startsWith("/api/templates/");
+  const isRunPath = path === "/api/runs" || path.startsWith("/api/runs/");
+  const isCreateRunPath = /^\/api\/templates\/[^/]+\/runs$/.test(path);
+  if (!isTemplatePath && !isRunPath) return jsonError("Not found", 404);
+
   const workspaceId = await getWorkspaceId(request);
+  if (isRunPath || isCreateRunPath) return handleRunRequest(request, workspaceId, env.DB);
   if (!workspaceId) return jsonError("Authentication required", 401);
 
   if (path === "/api/templates") {
@@ -155,7 +143,7 @@ async function handle(request: Request) {
       .filter((field) => field.required && !values[field.key]?.trim())
       .map((field) => field.key);
     if (missing.length) return jsonError("Required fields are missing", 422, { missing });
-    return Response.json(compile(template, values));
+    return Response.json(compilePrompt(template.body, values));
   }
 
   if (action) return new Response(null, { status: 405 });
