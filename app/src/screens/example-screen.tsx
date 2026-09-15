@@ -71,10 +71,15 @@ export function ExampleScreen({ onBack, onUseExample }: Props) {
         }}
         copied={copied}
         onCopy={async () => {
-          await navigator.clipboard.writeText(segments.map((segment) => segment.text).join(""));
-          setCopied(true);
-          track("prompt_copied");
-          toast.success("Prompt copied");
+          try {
+            const result = await compile.mutateAsync(values);
+            await navigator.clipboard.writeText(result.text);
+            setCopied(true);
+            track("prompt_copied");
+            toast.success("Prompt copied");
+          } catch {
+            toast.error("Could not copy this prompt");
+          }
         }}
         onAddToShelf={onUseExample}
         onClearAnswers={() => setValues({})}

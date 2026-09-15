@@ -20,6 +20,7 @@ Prompt Shelf is private by default. It does not execute prompts or store generat
 - Deterministic prompt compilation and live previews
 - Google sign-in with workspace-scoped ownership
 - Public examples with private user templates
+- Private saved runs tied to exact template revisions
 - Privacy-preserving product and traffic analytics
 
 ## Stack

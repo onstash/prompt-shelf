@@ -9,6 +9,7 @@ import { TemplateDetail } from "@/components/template-detail";
 import { TemplateDetailSkeleton } from "@/components/template-detail-skeleton";
 import { TemplateWorkspace } from "@/components/template-workspace";
 import { api, type Template, type TemplateField } from "@/lib/api";
+import { copyAndSaveRun } from "@/lib/copy-and-save-run";
 import { authClient } from "@/lib/auth";
 
 type Props = {
@@ -291,13 +292,31 @@ export function TemplateScreen({ templates, mode, initialTemplateId }: Props) {
             if (!ready) return toast.error("Complete the required fields first");
             try {
               const result = await compileMutation.mutateAsync();
-              await navigator.clipboard?.writeText(result.text);
+              if (template.isExample) {
+                await navigator.clipboard.writeText(result.text);
+                setCopied(true);
+                track("prompt_copied", template.id);
+                toast.success("Prompt copied");
+                setTimeout(() => setCopied(false), 1800);
+                return;
+              }
+
+              const copyResult = await copyAndSaveRun(result.text, async () => {
+                await api.createRun(template.id, template.version, values);
+              });
+              if (copyResult === "copy-failed") return toast.error("Could not copy this prompt");
+
               setCopied(true);
               track("prompt_copied", template.id);
-              toast.success("Prompt copied");
+              if (copyResult === "saved") {
+                await queryClient.invalidateQueries({ queryKey: ["runs"] });
+                toast.success("Prompt copied and saved");
+              } else {
+                toast.error("Prompt copied, but could not be saved");
+              }
               setTimeout(() => setCopied(false), 1800);
             } catch {
-              toast.error("Could not compile this prompt");
+              toast.error("Could not copy this prompt");
             }
           }}
           onAddToShelf={template.isExample ? startTemplateDraft : undefined}
