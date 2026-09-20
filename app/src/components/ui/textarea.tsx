@@ -9,7 +9,7 @@ const textareaVariants = cva(
       purpose: {
         answer: "min-h-24 resize-y",
         document:
-          "min-h-[clamp(16rem,40dvh,28rem)] resize-y font-mono text-base leading-7 md:text-sm",
+          "h-[clamp(16rem,40dvh,28rem)] max-h-[28rem] resize-y overflow-y-auto font-mono text-base leading-7 md:text-sm",
       },
     },
     defaultVariants: {

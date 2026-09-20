@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { Trash2 } from "lucide-react";
+import { Eraser, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -69,6 +69,10 @@ export function TemplateCreator({
   };
 
   const isEditing = mode === "edit";
+  const clearDraft = () => {
+    fieldMemory.current.clear();
+    setDraft({ title: "", description: "", body: "", fields: [] });
+  };
 
   return (
     <form
@@ -147,9 +151,31 @@ export function TemplateCreator({
       </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-2 rounded-xl border border-black/[.08] bg-white p-3 shadow-sm">
-        {isEditing && onDelete ? (
+        {isEditing ? (
           <AlertDialog>
             <AlertDialogTrigger render={<Button type="button" variant="destructive" />}>
+              <Eraser data-icon="inline-start" /> Clear
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Clear this draft?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This clears the template name, description, prompt, and fields. You can still
+                  cancel editing to keep the saved template.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction variant="destructive" onClick={clearDraft}>
+                  Clear draft
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        ) : null}
+        {isEditing && onDelete ? (
+          <AlertDialog>
+            <AlertDialogTrigger render={<Button type="button" variant="outline" />}>
               <Trash2 data-icon="inline-start" /> Delete template
             </AlertDialogTrigger>
             <AlertDialogContent>
