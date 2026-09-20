@@ -11,7 +11,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -83,9 +82,6 @@ export function TemplateCreator({
       }}
     >
       <section className="mb-9 max-w-3xl">
-        <Badge variant="outline" className="mb-4">
-          {isEditing ? "Editing" : "New template"}
-        </Badge>
         <h1 className="break-words text-4xl font-semibold tracking-[-.055em] [overflow-wrap:anywhere] sm:text-5xl">
           {isEditing ? "Edit template" : "Create template"}
         </h1>
