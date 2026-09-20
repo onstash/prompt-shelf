@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/onstash/prompt-shelf/compare/v0.4.1...v0.4.2) (2026-09-20)
+
+
+### Bug Fixes
+
+* prevent responsive control scaling ([#21](https://github.com/onstash/prompt-shelf/issues/21)) ([6737cf4](https://github.com/onstash/prompt-shelf/commit/6737cf42cc4a94e13861b9f45395eb07ce72f18a))
+
 ## [0.4.1](https://github.com/onstash/prompt-shelf/compare/v0.4.0...v0.4.1) (2026-09-20)
 
 
