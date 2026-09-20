@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/onstash/prompt-shelf/compare/v0.4.0...v0.4.1) (2026-09-20)
+
+
+### Bug Fixes
+
+* improve responsive template editing ([#19](https://github.com/onstash/prompt-shelf/issues/19)) ([c3badce](https://github.com/onstash/prompt-shelf/commit/c3badcee10e2181b0c3766469dcd357d0f81e6db))
+
 ## [0.4.0](https://github.com/onstash/prompt-shelf/compare/v0.3.0...v0.4.0) (2026-09-15)
 
 
