@@ -58,7 +58,6 @@
 }
 :root {
   font-family: var(--font-sans);
-  font-size: 15px;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
