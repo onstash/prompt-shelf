@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.3](https://github.com/onstash/prompt-shelf/compare/v0.4.2...v0.4.3) (2026-09-20)
+
+
+### Bug Fixes
+
+* simplify-template-header ([#23](https://github.com/onstash/prompt-shelf/issues/23)) ([5312f8c](https://github.com/onstash/prompt-shelf/commit/5312f8c919282c61190309e5da1ac3ff5ae612ad))
+
 ## [0.4.2](https://github.com/onstash/prompt-shelf/compare/v0.4.1...v0.4.2) (2026-09-20)
 
 
