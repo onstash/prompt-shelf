@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.4](https://github.com/onstash/prompt-shelf/compare/v0.4.3...v0.4.4) (2026-11-06)
+
+
+### Bug Fixes
+
+* preserve commas in select options ([#27](https://github.com/onstash/prompt-shelf/issues/27)) ([fc8f7aa](https://github.com/onstash/prompt-shelf/commit/fc8f7aaa9337da0889de30a003fccb2545d4ef6b))
+
 ## [0.4.3](https://github.com/onstash/prompt-shelf/compare/v0.4.2...v0.4.3) (2026-09-20)
 
 
