@@ -1,4 +1,5 @@
 import { Input } from "@/components/ui/input";
+import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -13,6 +14,8 @@ type Draft = { fields: TemplateField[] };
 type Props = { draft: Draft; setDraft: (draft: Draft) => void };
 
 export function TemplateFieldEditor({ draft, setDraft }: Props) {
+  const [optionInputs, setOptionInputs] = useState<Record<string, string>>({});
+
   if (draft.fields.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-black/[.12] px-5 py-10 text-center">
@@ -92,12 +95,14 @@ export function TemplateFieldEditor({ draft, setDraft }: Props) {
               <Input
                 id={`field-${field.key}-options`}
                 placeholder="Clear, friendly, direct"
-                value={(field.options ?? []).join(", ")}
+                value={optionInputs[field.key] ?? (field.options ?? []).join(", ")}
                 onChange={(event) => {
+                  const input = event.target.value;
+                  setOptionInputs((inputs) => ({ ...inputs, [field.key]: input }));
                   const fields = [...draft.fields];
                   fields[index] = {
                     ...field,
-                    options: event.target.value
+                    options: input
                       .split(",")
                       .map((option) => option.trim())
                       .filter(Boolean),
