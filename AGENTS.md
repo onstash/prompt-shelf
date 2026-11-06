@@ -55,9 +55,9 @@ Read the relevant ADR before changing authentication, persistence, analytics, ow
 ## Database changes
 
 1. Add the next numbered SQL file under `app/migrations/`.
-2. Apply it locally with `npm run db:migrate:local`.
+2. Apply it locally with `pnpm run db:migrate:local`.
 3. Verify code against local D1.
-4. Apply it remotely with `npm run db:migrate:remote` before deploying dependent code.
+4. Apply it remotely with `pnpm run db:migrate:remote` before deploying dependent code.
 
 Database migration and Worker deployment are separate operations by design.
 
@@ -66,9 +66,9 @@ Database migration and Worker deployment are separate operations by design.
 Run these before requesting review or committing:
 
 ```bash
-npm run format:check
-npm run lint
-npm run build
+pnpm run format:check
+pnpm run lint
+pnpm run build
 ```
 
 When behavior changes, add focused tests if the repository has coverage for that area. At minimum, manually verify affected public routes, private authorization, and direct URL loading.

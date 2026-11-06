@@ -39,7 +39,7 @@ The frontend, SSR server, authentication handlers, API, and database access depl
 ### Requirements
 
 - Node.js 22
-- npm
+- pnpm 12
 - A Cloudflare account for D1 and deployment
 - Google OAuth credentials for authenticated routes
 
@@ -48,12 +48,11 @@ The frontend, SSR server, authentication handlers, API, and database access depl
 ```bash
 git clone git@github.com:onstash/prompt-shelf.git
 cd prompt-shelf
-npm install
-npm --prefix app install
+pnpm install
 cp app/.dev.vars.example app/.dev.vars
 cp app/.env.example app/.env.local
-npm run db:migrate:local
-npm run dev
+pnpm run db:migrate:local
+pnpm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
@@ -70,14 +69,14 @@ Then replace the placeholder values in `app/.dev.vars`. Never commit that file.
 
 | Command | Purpose |
 | --- | --- |
-| `npm run dev` | Start the local TanStack Start server on port 3000 |
-| `npm run build` | Build the client and Cloudflare Worker, then type-check |
-| `npm run lint` | Run Oxlint and project-specific rules |
-| `npm run format` | Format source files with Oxfmt |
-| `npm run format:check` | Check formatting without changing files |
-| `npm run db:migrate:local` | Apply pending migrations to local D1 |
-| `npm run db:migrate:remote` | Apply pending migrations to production D1 |
-| `npm run deploy` | Build and deploy through Wrangler |
+| `pnpm run dev` | Start the local TanStack Start server on port 3000 |
+| `pnpm run build` | Build the client and Cloudflare Worker, then type-check |
+| `pnpm run lint` | Run Oxlint and project-specific rules |
+| `pnpm run format` | Format source files with Oxfmt |
+| `pnpm run format:check` | Check formatting without changing files |
+| `pnpm run db:migrate:local` | Apply pending migrations to local D1 |
+| `pnpm run db:migrate:remote` | Apply pending migrations to production D1 |
+| `pnpm run deploy` | Build and deploy through Wrangler |
 
 Remote migrations are intentionally separate from Worker deployment. Apply an additive migration before deploying code that depends on it.
 
@@ -138,7 +137,7 @@ More context is recorded in [`docs/decisions`](docs/decisions) and [`AGENTS.md`]
 
 1. Create a focused branch from `main`.
 2. Keep pull requests small and use a Conventional Commit title such as `feat: add template sharing`.
-3. Run `npm run format:check`, `npm run lint`, and `npm run build`.
+3. Run `pnpm run format:check`, `pnpm run lint`, and `pnpm run build`.
 4. Explain database, authentication, privacy, or public API decisions in an ADR when they are expensive to reverse.
 
 ## License

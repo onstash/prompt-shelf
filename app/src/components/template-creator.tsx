@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Eraser, Trash2 } from "lucide-react";
 import {
   AlertDialog,
@@ -18,6 +18,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { TemplateFieldEditor } from "@/components/template-field-editor";
 import type { TemplateField } from "@/lib/api";
+import {
+  parseMarkdownSections,
+  renumberSectionsAfterDeletion,
+  serializeMarkdownSections,
+  type DraftSection,
+} from "@/lib/markdown-sections";
 
 export type TemplateDraft = {
   title: string;
@@ -48,6 +54,9 @@ export function TemplateCreator({
   isSaving = false,
 }: Props) {
   const fieldMemory = useRef(new Map(draft.fields.map((field) => [field.key, field] as const)));
+  const [sections, setSections] = useState<DraftSection[]>(() => parseMarkdownSections(draft.body));
+  const [activeSectionId, setActiveSectionId] = useState("");
+  const [focusSectionId, setFocusSectionId] = useState<string | null>(null);
 
   const updateBody = (body: string) => {
     for (const field of draft.fields) fieldMemory.current.set(field.key, field);
@@ -67,9 +76,48 @@ export function TemplateCreator({
     setDraft({ ...draft, body, fields });
   };
 
+  const updateSections = (nextSections: DraftSection[]) => {
+    setSections(nextSections);
+    updateBody(serializeMarkdownSections(nextSections));
+  };
+
+  const activeSection = sections.find((section) => section.id === activeSectionId) ?? sections[0];
+
+  const uniqueHeading = (heading: string, sectionId: string) => {
+    const trimmed = heading.trim() || "Untitled section";
+    if (!sections.some((section) => section.id !== sectionId && section.heading === trimmed)) {
+      return trimmed;
+    }
+
+    let suffix = 2;
+    while (
+      sections.some(
+        (section) => section.id !== sectionId && section.heading === `${trimmed} ${suffix}`,
+      )
+    ) {
+      suffix += 1;
+    }
+    return `${trimmed} ${suffix}`;
+  };
+
   const isEditing = mode === "edit";
+  const deleteSection = () => {
+    if (!activeSection) return;
+
+    const nextSections = renumberSectionsAfterDeletion(
+      sections.filter((section) => section.id !== activeSection.id),
+      activeSection.heading,
+    );
+
+    updateSections(nextSections);
+    setActiveSectionId(nextSections[0]?.id ?? "");
+  };
+
   const clearDraft = () => {
     fieldMemory.current.clear();
+    const nextSections = parseMarkdownSections("");
+    setSections(nextSections);
+    setActiveSectionId(nextSections[0].id);
     setDraft({ title: "", description: "", body: "", fields: [] });
   };
 
@@ -118,17 +166,132 @@ export function TemplateCreator({
             <div className="flex flex-col gap-2">
               <Label htmlFor="template-body">Prompt instructions</Label>
               <p className="text-xs leading-5 text-muted-foreground">
-                Wrap each answer in braces, such as{" "}
-                <code className="rounded bg-muted px-1.5 py-0.5">{"{{audience}}"}</code>. Its field
-                appears automatically.
+                {isEditing ? (
+                  <>
+                    Edit Markdown sections separately. Variables such as{" "}
+                    <code className="rounded bg-muted px-1.5 py-0.5">{"{{audience}}"}</code> still
+                    create fields automatically.
+                  </>
+                ) : (
+                  <>
+                    Wrap each answer in braces, such as{" "}
+                    <code className="rounded bg-muted px-1.5 py-0.5">{"{{audience}}"}</code>. Its
+                    field appears automatically.
+                  </>
+                )}
               </p>
-              <Textarea
-                id="template-body"
-                purpose="document"
-                value={draft.body}
-                onChange={(event) => updateBody(event.target.value)}
-                placeholder={"Write a concise summary for {{audience}} in a {{tone}} tone."}
-              />
+              {isEditing ? (
+                <div className="grid min-w-0 gap-4 md:grid-cols-[minmax(9rem,0.32fr)_minmax(0,1fr)]">
+                  <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 md:block md:space-y-1 md:overflow-visible">
+                    {sections.map((section) => (
+                      <Button
+                        key={section.id}
+                        type="button"
+                        variant={section.id === activeSection?.id ? "secondary" : "ghost"}
+                        className="min-w-0 max-w-full shrink-0 justify-start md:w-full"
+                        onClick={() => setActiveSectionId(section.id)}
+                      >
+                        <span className="min-w-0 truncate">{section.heading}</span>
+                      </Button>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="shrink-0 md:mt-2 md:w-full"
+                      onClick={() => {
+                        const section = {
+                          id: `section-${crypto.randomUUID()}`,
+                          heading: uniqueHeading("New section", ""),
+                          level: 1,
+                          body: "",
+                        };
+                        updateSections([...sections, section]);
+                        setActiveSectionId(section.id);
+                        setFocusSectionId(section.id);
+                      }}
+                    >
+                      + Add section
+                    </Button>
+                  </div>
+                  {activeSection ? (
+                    <div className="min-w-0 space-y-3">
+                      <div className="flex min-w-0 gap-2">
+                        <Input
+                          autoFocus={focusSectionId === activeSection.id}
+                          aria-label="Section heading"
+                          value={activeSection.heading}
+                          onChange={(event) => {
+                            setFocusSectionId(null);
+                            updateSections(
+                              sections.map((section) =>
+                                section.id === activeSection.id
+                                  ? {
+                                      ...section,
+                                      heading: uniqueHeading(event.target.value, section.id),
+                                    }
+                                  : section,
+                              ),
+                            );
+                          }}
+                        />
+                        <AlertDialog>
+                          <AlertDialogTrigger
+                            render={
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="icon"
+                                aria-label="Delete section"
+                                title="Delete section"
+                              />
+                            }
+                          >
+                            <Trash2 />
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete this section?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This permanently removes the section heading and its prompt content
+                                from this draft.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction variant="destructive" onClick={deleteSection}>
+                                Delete section
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                      <Textarea
+                        id="template-body"
+                        purpose="document"
+                        value={activeSection.body}
+                        onChange={(event) =>
+                          updateSections(
+                            sections.map((section) =>
+                              section.id === activeSection.id
+                                ? { ...section, body: event.target.value }
+                                : section,
+                            ),
+                          )
+                        }
+                        placeholder="Write this section of the prompt."
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              ) : (
+                <Textarea
+                  id="template-body"
+                  purpose="document"
+                  value={draft.body}
+                  onChange={(event) => updateBody(event.target.value)}
+                  placeholder={"Write a concise summary for {{audience}} in a {{tone}} tone."}
+                />
+              )}
             </div>
           </CardContent>
         </Card>
