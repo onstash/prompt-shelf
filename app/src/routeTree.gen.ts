@@ -15,9 +15,9 @@ import { Route as ConsentRouteImport } from './routes/consent'
 import { Route as HealthRouteImport } from './routes/health'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as McpRouteImport } from './routes/mcp'
-import { Route as ProposalsRouteImport } from './routes/proposals'
 import { Route as ApiSplatRouteImport } from './routes/api.$'
 import { Route as ExamplesExampleIdRouteImport } from './routes/examples.$exampleId'
+import { Route as ProposalsIndexRouteImport } from './routes/proposals.index'
 import { Route as ProposalsProposalIdRouteImport } from './routes/proposals.$proposalId'
 import { Route as TemplatesIndexRouteImport } from './routes/templates.index'
 import { Route as TemplatesTemplateIdRouteImport } from './routes/templates.$templateId'
@@ -56,11 +56,6 @@ const McpRoute = McpRouteImport.update({
   path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProposalsRoute = ProposalsRouteImport.update({
-  id: '/proposals',
-  path: '/proposals',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiSplatRoute = ApiSplatRouteImport.update({
   id: '/api/$',
   path: '/api/$',
@@ -71,10 +66,15 @@ const ExamplesExampleIdRoute = ExamplesExampleIdRouteImport.update({
   path: '/examples/$exampleId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProposalsIndexRoute = ProposalsIndexRouteImport.update({
+  id: '/proposals/',
+  path: '/proposals/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProposalsProposalIdRoute = ProposalsProposalIdRouteImport.update({
-  id: '/$proposalId',
-  path: '/$proposalId',
-  getParentRoute: () => ProposalsRoute,
+  id: '/proposals/$proposalId',
+  path: '/proposals/$proposalId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const TemplatesIndexRoute = TemplatesIndexRouteImport.update({
   id: '/templates/',
@@ -116,12 +116,12 @@ export interface FileRoutesByFullPath {
   '/health': typeof HealthRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
-  '/proposals': typeof ProposalsRouteWithChildren
   '/api/$': typeof ApiSplatRoute
   '/examples/$exampleId': typeof ExamplesExampleIdRoute
   '/proposals/$proposalId': typeof ProposalsProposalIdRoute
   '/templates/$templateId': typeof TemplatesTemplateIdRoute
   '/templates/new': typeof TemplatesNewRoute
+  '/proposals/': typeof ProposalsIndexRoute
   '/templates/': typeof TemplatesIndexRoute
   '/.well-known/oauth-protected-resource/mcp': typeof DotwellKnownOauthProtectedResourceMcpRoute
   '/templates/$templateId/edit': typeof TemplatesTemplateIdEditRoute
@@ -134,12 +134,12 @@ export interface FileRoutesByTo {
   '/health': typeof HealthRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
-  '/proposals': typeof ProposalsRouteWithChildren
   '/api/$': typeof ApiSplatRoute
   '/examples/$exampleId': typeof ExamplesExampleIdRoute
   '/proposals/$proposalId': typeof ProposalsProposalIdRoute
   '/templates/$templateId': typeof TemplatesTemplateIdRoute
   '/templates/new': typeof TemplatesNewRoute
+  '/proposals': typeof ProposalsIndexRoute
   '/templates': typeof TemplatesIndexRoute
   '/.well-known/oauth-protected-resource/mcp': typeof DotwellKnownOauthProtectedResourceMcpRoute
   '/templates/$templateId/edit': typeof TemplatesTemplateIdEditRoute
@@ -153,12 +153,12 @@ export interface FileRoutesById {
   '/health': typeof HealthRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
-  '/proposals': typeof ProposalsRouteWithChildren
   '/api/$': typeof ApiSplatRoute
   '/examples/$exampleId': typeof ExamplesExampleIdRoute
   '/proposals/$proposalId': typeof ProposalsProposalIdRoute
   '/templates/$templateId': typeof TemplatesTemplateIdRoute
   '/templates/new': typeof TemplatesNewRoute
+  '/proposals/': typeof ProposalsIndexRoute
   '/templates/': typeof TemplatesIndexRoute
   '/.well-known/oauth-protected-resource/mcp': typeof DotwellKnownOauthProtectedResourceMcpRoute
   '/templates/$templateId_/edit': typeof TemplatesTemplateIdEditRoute
@@ -173,12 +173,12 @@ export interface FileRouteTypes {
     | '/health'
     | '/login'
     | '/mcp'
-    | '/proposals'
     | '/api/$'
     | '/examples/$exampleId'
     | '/proposals/$proposalId'
     | '/templates/$templateId'
     | '/templates/new'
+    | '/proposals/'
     | '/templates/'
     | '/.well-known/oauth-protected-resource/mcp'
     | '/templates/$templateId/edit'
@@ -191,12 +191,12 @@ export interface FileRouteTypes {
     | '/health'
     | '/login'
     | '/mcp'
-    | '/proposals'
     | '/api/$'
     | '/examples/$exampleId'
     | '/proposals/$proposalId'
     | '/templates/$templateId'
     | '/templates/new'
+    | '/proposals'
     | '/templates'
     | '/.well-known/oauth-protected-resource/mcp'
     | '/templates/$templateId/edit'
@@ -209,12 +209,12 @@ export interface FileRouteTypes {
     | '/health'
     | '/login'
     | '/mcp'
-    | '/proposals'
     | '/api/$'
     | '/examples/$exampleId'
     | '/proposals/$proposalId'
     | '/templates/$templateId'
     | '/templates/new'
+    | '/proposals/'
     | '/templates/'
     | '/.well-known/oauth-protected-resource/mcp'
     | '/templates/$templateId_/edit'
@@ -228,11 +228,12 @@ export interface RootRouteChildren {
   HealthRoute: typeof HealthRoute
   LoginRoute: typeof LoginRoute
   McpRoute: typeof McpRoute
-  ProposalsRoute: typeof ProposalsRouteWithChildren
   ApiSplatRoute: typeof ApiSplatRoute
   ExamplesExampleIdRoute: typeof ExamplesExampleIdRoute
+  ProposalsProposalIdRoute: typeof ProposalsProposalIdRoute
   TemplatesTemplateIdRoute: typeof TemplatesTemplateIdRoute
   TemplatesNewRoute: typeof TemplatesNewRoute
+  ProposalsIndexRoute: typeof ProposalsIndexRoute
   TemplatesIndexRoute: typeof TemplatesIndexRoute
   DotwellKnownOauthProtectedResourceMcpRoute: typeof DotwellKnownOauthProtectedResourceMcpRoute
   TemplatesTemplateIdEditRoute: typeof TemplatesTemplateIdEditRoute
@@ -283,13 +284,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/proposals': {
-      id: '/proposals'
-      path: '/proposals'
-      fullPath: '/proposals'
-      preLoaderRoute: typeof ProposalsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/$': {
       id: '/api/$'
       path: '/api/$'
@@ -304,12 +298,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExamplesExampleIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/proposals/': {
+      id: '/proposals/'
+      path: '/proposals'
+      fullPath: '/proposals/'
+      preLoaderRoute: typeof ProposalsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/proposals/$proposalId': {
       id: '/proposals/$proposalId'
-      path: '/$proposalId'
+      path: '/proposals/$proposalId'
       fullPath: '/proposals/$proposalId'
       preLoaderRoute: typeof ProposalsProposalIdRouteImport
-      parentRoute: typeof ProposalsRoute
+      parentRoute: typeof rootRouteImport
     }
     '/templates/': {
       id: '/templates/'
@@ -356,18 +357,6 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface ProposalsRouteChildren {
-  ProposalsProposalIdRoute: typeof ProposalsProposalIdRoute
-}
-
-const ProposalsRouteChildren: ProposalsRouteChildren = {
-  ProposalsProposalIdRoute: ProposalsProposalIdRoute,
-}
-
-const ProposalsRouteWithChildren = ProposalsRoute._addFileChildren(
-  ProposalsRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ConnectionsRoute: ConnectionsRoute,
@@ -375,11 +364,12 @@ const rootRouteChildren: RootRouteChildren = {
   HealthRoute: HealthRoute,
   LoginRoute: LoginRoute,
   McpRoute: McpRoute,
-  ProposalsRoute: ProposalsRouteWithChildren,
   ApiSplatRoute: ApiSplatRoute,
   ExamplesExampleIdRoute: ExamplesExampleIdRoute,
+  ProposalsProposalIdRoute: ProposalsProposalIdRoute,
   TemplatesTemplateIdRoute: TemplatesTemplateIdRoute,
   TemplatesNewRoute: TemplatesNewRoute,
+  ProposalsIndexRoute: ProposalsIndexRoute,
   TemplatesIndexRoute: TemplatesIndexRoute,
   DotwellKnownOauthProtectedResourceMcpRoute:
     DotwellKnownOauthProtectedResourceMcpRoute,
