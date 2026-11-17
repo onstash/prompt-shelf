@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/onstash/prompt-shelf/compare/v0.5.0...v0.6.0) (2026-11-17)
+
+
+### Features
+
+* add proposal review, connected apps, and consent fix ([#30](https://github.com/onstash/prompt-shelf/issues/30)) ([1344f9f](https://github.com/onstash/prompt-shelf/commit/1344f9f5f1da11ff70cfd3e15e1ba9ad22889a00))
+
 ## [0.5.0](https://github.com/onstash/prompt-shelf/compare/v0.4.3...v0.5.0) (2026-11-17)
 
 
