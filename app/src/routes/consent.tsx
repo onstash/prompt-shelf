@@ -10,11 +10,12 @@ import { Alert } from "@/components/ui/alert";
 
 export const Route = createFileRoute("/consent")({
   head: () => privatePageHead("Allow connection | Prompt Shelf"),
-  beforeLoad: async ({ location }) => {
+  beforeLoad: async () => {
     const session = await getSessionStatus();
     // Signed out: send the user to sign in with the signed query intact, so the request resumes.
-    if (session.status === "signed-out" && oauthQuery(location.searchStr)) {
-      throw redirect({ href: `/login${location.searchStr}` });
+    // Use the raw request query: router-normalized search can drop repeated signed parameters.
+    if (session.status === "signed-out" && oauthQuery(session.search)) {
+      throw redirect({ href: `/login${session.search}` });
     }
     return { session };
   },
@@ -26,12 +27,14 @@ function ConsentRoute() {
   const location = useLocation();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const signedQuery = oauthQuery(location.searchStr);
+  // Presence check only. The signed query itself is read from the raw browser URL on click.
+  const hasRequest = oauthQuery(location.searchStr) !== null;
   const query = new URLSearchParams(location.searchStr);
   const clientName = query.get("client_name") ?? "This AI client";
   const requestedScopes = (query.get("scope") ?? "").split(" ").filter(Boolean);
 
   async function decide(accept: boolean) {
+    const signedQuery = oauthQuery(globalThis.location.search);
     if (!signedQuery) {
       setError("This connection request is invalid or has expired.");
       return;
@@ -47,7 +50,7 @@ function ConsentRoute() {
     }
   }
 
-  if (!signedQuery) {
+  if (!hasRequest) {
     return (
       <PageContainer>
         <main className="grid min-h-dvh place-items-center px-4">
