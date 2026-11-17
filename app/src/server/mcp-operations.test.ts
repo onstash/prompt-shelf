@@ -32,6 +32,7 @@ test("catalog lists every operation under the execute scope with a JSON schema",
       "get_revision",
       "render_prompt",
       "propose_update",
+      "propose_create",
       "get_proposal",
     ],
   );

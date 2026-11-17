@@ -53,8 +53,11 @@ export type ProductEventName =
 
 export type ProposalSummary = {
   id: string;
-  templateId: string;
-  baseVersion: number;
+  kind: "update" | "create";
+  /** Null for a proposal that creates a new template. */
+  templateId: string | null;
+  /** Null for a proposal that creates a new template. */
+  baseVersion: number | null;
   title: string;
   description: string;
   category: string;
@@ -64,7 +67,9 @@ export type ProposalSummary = {
   createdAt: string;
   decidedAt: string | null;
   appliedVersion: number | null;
+  appliedTemplateId: string | null;
 };
+export type ProposalListStatus = "pending" | "approved" | "rejected" | "conflict" | "all";
 export type ProposalDiff = {
   body: Array<{ kind: "same" | "added" | "removed"; text: string }>;
   addedTokens: string[];
@@ -167,7 +172,8 @@ export const api = {
       method: "PUT",
       body: JSON.stringify({ ...input, baseVersion }),
     }),
-  listProposals: () => request<{ proposals: ProposalSummary[] }>("/api/proposals"),
+  listProposals: (status: ProposalListStatus) =>
+    request<{ proposals: ProposalSummary[] }>(`/api/proposals?status=${status}`),
   getProposalDiff: (id: string) =>
     request<{ proposal: ProposalSummary; diff: ProposalDiff }>(`/api/proposals/${id}/diff`),
   decideProposal: (id: string, action: "approve" | "reject") =>

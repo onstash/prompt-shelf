@@ -2,9 +2,32 @@ import { createAuth } from "./auth.ts";
 import type { Db } from "./db.ts";
 import { diffProposal } from "./proposal-diff.ts";
 import { canDecideProposals } from "./proposal-permissions.ts";
-import { D1ProposalRepository, type ProposalDecisionResult } from "./proposal-repository.ts";
+import {
+  D1ProposalRepository,
+  type ProposalDecisionResult,
+  type ProposalStatus,
+} from "./proposal-repository.ts";
+import type { TemplateInput } from "./template-repository.ts";
 import { D1TemplateRepository } from "./template-repository.ts";
 import { personalWorkspaceId } from "./workspace.ts";
+
+const LIST_STATUSES = ["pending", "approved", "rejected", "conflict", "all"] as const;
+
+const EMPTY_TEMPLATE: TemplateInput = {
+  title: "",
+  description: "",
+  category: "",
+  body: "",
+  fields: [],
+};
+
+async function templateFor(
+  db: Db,
+  workspaceId: string,
+  templateId: string,
+): Promise<TemplateInput | null> {
+  return new D1TemplateRepository(db).find(workspaceId, templateId);
+}
 
 function json(body: object, status = 200): Response {
   return Response.json(body, { status });
@@ -13,7 +36,7 @@ function json(body: object, status = 200): Response {
 function decisionResponse(result: ProposalDecisionResult): Response {
   switch (result.status) {
     case "approved":
-      return json({ status: "approved", version: result.version });
+      return json({ status: "approved", version: result.version, templateId: result.templateId });
     case "rejected":
       return json({ status: "rejected" });
     case "conflict":
@@ -51,7 +74,12 @@ export async function handleProposalRequest(request: Request, db: Db): Promise<R
   // segments: ["api", "proposals"] | ["api", "proposals", id] | ["api", "proposals", id, action]
 
   if (segments.length === 2 && request.method === "GET") {
-    return json({ proposals: await proposals.list(workspaceId, "pending") });
+    const status = new URL(request.url).searchParams.get("status") ?? "pending";
+    if (!LIST_STATUSES.some((value) => value === status))
+      return json({ error: "Invalid status" }, 422);
+    // SAFETY: the value was checked against LIST_STATUSES above, so it is a valid ProposalStatus unless "all".
+    const filter = status === "all" ? null : (status as ProposalStatus);
+    return json({ proposals: await proposals.list(workspaceId, filter) });
   }
 
   const id = segments[2];
@@ -65,9 +93,13 @@ export async function handleProposalRequest(request: Request, db: Db): Promise<R
   if (segments.length === 4 && segments[3] === "diff" && request.method === "GET") {
     const proposal = await proposals.find(workspaceId, id);
     if (!proposal) return json({ error: "Proposal not found" }, 404);
-    const template = await new D1TemplateRepository(db).find(workspaceId, proposal.templateId);
-    if (!template) return json({ error: "Template not found" }, 404);
-    return json({ proposal, diff: diffProposal(template, proposal) });
+    // A creation is compared with an empty template, so every line shows as added.
+    if (!proposal.templateId) {
+      return json({ proposal, diff: diffProposal(EMPTY_TEMPLATE, proposal) });
+    }
+    const current = await templateFor(db, workspaceId, proposal.templateId);
+    if (!current) return json({ error: "Template not found" }, 404);
+    return json({ proposal, diff: diffProposal(current, proposal) });
   }
 
   const action = segments[3];
