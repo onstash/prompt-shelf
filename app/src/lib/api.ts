@@ -51,6 +51,40 @@ export type ProductEventName =
   | "prompt_copied"
   | "template_created";
 
+export type ProposalSummary = {
+  id: string;
+  templateId: string;
+  baseVersion: number;
+  title: string;
+  description: string;
+  category: string;
+  body: string;
+  fields: TemplateField[];
+  status: "pending" | "approved" | "rejected" | "conflict";
+  createdAt: string;
+  decidedAt: string | null;
+  appliedVersion: number | null;
+};
+export type ProposalDiff = {
+  body: Array<{ kind: "same" | "added" | "removed"; text: string }>;
+  addedTokens: string[];
+  removedTokens: string[];
+  fields: Array<{
+    key: string;
+    kind: "added" | "removed" | "changed";
+    breaking: boolean;
+    details: string[];
+  }>;
+  metadata: Array<{ name: "title" | "description" | "category"; from: string; to: string }>;
+  breaking: boolean;
+};
+export type Connection = {
+  consentId: string;
+  clientName: string;
+  scopes: string[];
+  connectedAt: string;
+};
+
 export class ApiError extends Error {
   readonly status: number;
   readonly details?: Record<string, string | string[] | undefined>;
@@ -132,6 +166,19 @@ export const api = {
     request<Template>(`/api/templates/${id}`, {
       method: "PUT",
       body: JSON.stringify({ ...input, baseVersion }),
+    }),
+  listProposals: () => request<{ proposals: ProposalSummary[] }>("/api/proposals"),
+  getProposalDiff: (id: string) =>
+    request<{ proposal: ProposalSummary; diff: ProposalDiff }>(`/api/proposals/${id}/diff`),
+  decideProposal: (id: string, action: "approve" | "reject") =>
+    request<{ status: string; version?: number }>(`/api/proposals/${id}/${action}`, {
+      method: "POST",
+    }),
+  listConnections: () => request<{ connections: Connection[] }>("/api/connections"),
+  revokeConnection: (consentId: string) =>
+    request<{ revoked: true }>("/api/connections/revoke", {
+      method: "POST",
+      body: JSON.stringify({ consentId }),
     }),
   continueOAuth: (oauthQuery: string) =>
     request<{ url: string }>("/api/auth/oauth2/continue", {

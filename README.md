@@ -118,6 +118,24 @@ Production Google OAuth callback:
 https://prompt-shelf-api.hastons.workers.dev/api/auth/callback/google
 ```
 
+## Connect an AI client
+
+Prompt Shelf exposes an MCP server at `/mcp`. AI apps that support MCP can search your templates, render prompts, and suggest edits.
+
+1. Add the server URL, `https://<your-host>/mcp`, to the AI app. Use a local URL such as `http://localhost:3000/mcp` during development.
+2. The app registers itself and sends you to Prompt Shelf to sign in.
+3. Review the consent screen. It lists what the app may do. Choose **Allow connection** to continue, or **Deny** to cancel.
+
+What a connected app can do:
+
+- `search` lists the operations and their inputs.
+- `execute` lists and reads templates and revisions, renders prompts, and proposes edits.
+- It cannot approve edits. Each proposed edit waits in **Proposed edits** until an owner or admin approves or rejects it.
+- Access tokens last one hour. Refresh tokens last one week, so a connection works for a week before you sign in again.
+- Each app may create up to 20 proposals per hour.
+
+Manage connections in **Connected apps**. Revoking an app stops it from refreshing its access. An access token it already holds can still work for up to one hour.
+
 ## Architecture rules
 
 - Server sessions are the source of user identity; never trust client-supplied user or workspace IDs.

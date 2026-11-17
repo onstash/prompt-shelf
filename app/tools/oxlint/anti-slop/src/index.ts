@@ -6,6 +6,7 @@ import { noChainedTypeAssertionsRule } from "./rules/no-chained-type-assertions.
 import { noConditionalEmptyObjectSpreadRule } from "./rules/no-conditional-empty-object-spread.ts";
 import { noDirectD1AccessRule } from "./rules/no-direct-d1-access.ts";
 import { noRawAppNavigationRule } from "./rules/no-raw-app-navigation.ts";
+import { noNormalizedOauthQueryRule } from "./rules/no-normalized-oauth-query.ts";
 import { noKnownValueWideningRule } from "./rules/no-known-value-widening.ts";
 import { noModuleMockingRule } from "./rules/no-module-mocking.ts";
 import { noObjectParametersRule } from "./rules/no-object-parameters.ts";
@@ -30,6 +31,7 @@ const antiSlopPlugin = eslintCompatPlugin({
     "no-conditional-empty-object-spread": noConditionalEmptyObjectSpreadRule,
     "no-direct-d1-access": noDirectD1AccessRule,
     "no-raw-app-navigation": noRawAppNavigationRule,
+    "no-normalized-oauth-query": noNormalizedOauthQueryRule,
     "no-known-value-widening": noKnownValueWideningRule,
     "no-module-mocking": noModuleMockingRule,
     "no-object-parameters": noObjectParametersRule,

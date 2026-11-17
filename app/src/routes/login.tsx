@@ -11,10 +11,10 @@ import { Alert } from "@/components/ui/alert";
 
 export const Route = createFileRoute("/login")({
   head: () => privatePageHead("Sign in | Prompt Shelf"),
-  beforeLoad: async ({ location }) => {
+  beforeLoad: async () => {
     const session = await getSessionStatus();
     // Signed in and no AI connection to resume: nothing to do here.
-    if (session.status === "signed-in" && !oauthQuery(location.searchStr)) {
+    if (session.status === "signed-in" && !oauthQuery(session.search)) {
       throw redirect({ to: "/templates/new" });
     }
     return { session };
@@ -26,18 +26,20 @@ function LoginRoute() {
   const { session } = Route.useRouteContext();
   const location = useLocation();
   const [error, setError] = useState<string | null>(null);
-  const continuation = oauthQuery(location.searchStr);
+  // Presence check for the view only. The signed query is forwarded from the raw browser URL.
+  const hasRequest = oauthQuery(location.searchStr) !== null;
 
   // An AI client started a connection. Resume it now that the user is signed in.
   useEffect(() => {
-    if (session.status !== "signed-in" || !continuation) return;
+    const signedQuery = oauthQuery(globalThis.location.search);
+    if (session.status !== "signed-in" || !signedQuery) return;
     api
-      .continueOAuth(continuation)
+      .continueOAuth(signedQuery)
       .then(({ url }) => window.location.assign(url))
       .catch(() => setError("Unable to continue the connection."));
-  }, [session.status, continuation]);
+  }, [session.status]);
 
-  if (session.status === "signed-in") {
+  if (session.status === "signed-in" && hasRequest) {
     return (
       <PageContainer>
         <main className="grid min-h-dvh place-items-center px-4">
