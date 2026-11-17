@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/onstash/prompt-shelf/compare/v0.7.1...v0.8.0) (2026-11-17)
+
+
+### Features
+
+* improve the proposal diff view ([#37](https://github.com/onstash/prompt-shelf/issues/37)) ([95ef43d](https://github.com/onstash/prompt-shelf/commit/95ef43df3801b73d8f6f6b2f55442e91485471da))
+
 ## [0.7.1](https://github.com/onstash/prompt-shelf/compare/v0.7.0...v0.7.1) (2026-11-17)
 
 
