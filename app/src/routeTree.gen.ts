@@ -10,8 +10,10 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ConsentRouteImport } from './routes/consent'
 import { Route as HealthRouteImport } from './routes/health'
-import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as ApiSplatRouteImport } from './routes/api.$'
 import { Route as ExamplesExampleIdRouteImport } from './routes/examples.$exampleId'
 import { Route as TemplatesIndexRouteImport } from './routes/templates.index'
@@ -26,14 +28,24 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConsentRoute = ConsentRouteImport.update({
+  id: '/consent',
+  path: '/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HealthRoute = HealthRouteImport.update({
   id: '/health',
   path: '/health',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SignInRoute = SignInRouteImport.update({
-  id: '/sign-in',
-  path: '/sign-in',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSplatRoute = ApiSplatRouteImport.update({
@@ -81,8 +93,10 @@ const DotwellKnownOauthAuthorizationServerApiAuthRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/consent': typeof ConsentRoute
   '/health': typeof HealthRoute
-  '/sign-in': typeof SignInRoute
+  '/login': typeof LoginRoute
+  '/mcp': typeof McpRoute
   '/api/$': typeof ApiSplatRoute
   '/examples/$exampleId': typeof ExamplesExampleIdRoute
   '/templates/$templateId': typeof TemplatesTemplateIdRoute
@@ -94,8 +108,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/consent': typeof ConsentRoute
   '/health': typeof HealthRoute
-  '/sign-in': typeof SignInRoute
+  '/login': typeof LoginRoute
+  '/mcp': typeof McpRoute
   '/api/$': typeof ApiSplatRoute
   '/examples/$exampleId': typeof ExamplesExampleIdRoute
   '/templates/$templateId': typeof TemplatesTemplateIdRoute
@@ -108,8 +124,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/consent': typeof ConsentRoute
   '/health': typeof HealthRoute
-  '/sign-in': typeof SignInRoute
+  '/login': typeof LoginRoute
+  '/mcp': typeof McpRoute
   '/api/$': typeof ApiSplatRoute
   '/examples/$exampleId': typeof ExamplesExampleIdRoute
   '/templates/$templateId': typeof TemplatesTemplateIdRoute
@@ -123,8 +141,10 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/consent'
     | '/health'
-    | '/sign-in'
+    | '/login'
+    | '/mcp'
     | '/api/$'
     | '/examples/$exampleId'
     | '/templates/$templateId'
@@ -136,8 +156,10 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/consent'
     | '/health'
-    | '/sign-in'
+    | '/login'
+    | '/mcp'
     | '/api/$'
     | '/examples/$exampleId'
     | '/templates/$templateId'
@@ -149,8 +171,10 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/consent'
     | '/health'
-    | '/sign-in'
+    | '/login'
+    | '/mcp'
     | '/api/$'
     | '/examples/$exampleId'
     | '/templates/$templateId'
@@ -163,8 +187,10 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ConsentRoute: typeof ConsentRoute
   HealthRoute: typeof HealthRoute
-  SignInRoute: typeof SignInRoute
+  LoginRoute: typeof LoginRoute
+  McpRoute: typeof McpRoute
   ApiSplatRoute: typeof ApiSplatRoute
   ExamplesExampleIdRoute: typeof ExamplesExampleIdRoute
   TemplatesTemplateIdRoute: typeof TemplatesTemplateIdRoute
@@ -184,6 +210,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/consent': {
+      id: '/consent'
+      path: '/consent'
+      fullPath: '/consent'
+      preLoaderRoute: typeof ConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/health': {
       id: '/health'
       path: '/health'
@@ -191,11 +224,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HealthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sign-in': {
-      id: '/sign-in'
-      path: '/sign-in'
-      fullPath: '/sign-in'
-      preLoaderRoute: typeof SignInRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/$': {
@@ -259,8 +299,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ConsentRoute: ConsentRoute,
   HealthRoute: HealthRoute,
-  SignInRoute: SignInRoute,
+  LoginRoute: LoginRoute,
+  McpRoute: McpRoute,
   ApiSplatRoute: ApiSplatRoute,
   ExamplesExampleIdRoute: ExamplesExampleIdRoute,
   TemplatesTemplateIdRoute: TemplatesTemplateIdRoute,

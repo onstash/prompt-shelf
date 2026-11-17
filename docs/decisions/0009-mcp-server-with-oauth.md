@@ -15,7 +15,7 @@ Host an MCP endpoint at `/mcp` inside the Prompt Shelf Worker. Prompt Shelf is b
 
 - Authorization uses Better Auth's `jwt()` and `mcp()` plugins, following LifeOS.
 - Clients register dynamically. Unauthenticated registration is allowed, and the consent screen is always shown before access is granted.
-- Scopes: `prompt-shelf.search`, `prompt-shelf.execute`, `prompt-shelf.propose`, and `offline_access`. `prompt-shelf.propose` is separate so read-only clients cannot create proposals.
+- Scopes: `prompt-shelf.search`, `prompt-shelf.execute`, and `offline_access`. Proposing an edit uses `execute`. A proposal is harmless until approved in the browser, so a separate scope is not needed.
 - Access tokens last about one hour. Refresh tokens last one week.
 - The MCP surface has two tools, `search` and `execute`. Each operation checks its scope.
 - Tokens are verified with `jose` against a local JWKS, since authorization and MCP run in the same Worker.

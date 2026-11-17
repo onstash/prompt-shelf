@@ -4,12 +4,8 @@ import { jwt } from "better-auth/plugins";
 import { env } from "cloudflare:workers";
 import { getDb } from "./database";
 
-export const mcpScopes = [
-  "prompt-shelf.search",
-  "prompt-shelf.execute",
-  "prompt-shelf.propose",
-  "offline_access",
-] as const;
+// `execute` covers rendering and proposing edits. Proposals stay pending until approved in the browser.
+export const mcpScopes = ["prompt-shelf.search", "prompt-shelf.execute", "offline_access"] as const;
 
 export function createAuth(requestUrl: string) {
   const origin = new URL(requestUrl).origin;
@@ -31,7 +27,7 @@ export function createAuth(requestUrl: string) {
       jwt(),
       mcp({
         resource: `${origin}/mcp`,
-        loginPage: "/sign-in",
+        loginPage: "/login",
         consentPage: "/consent",
         scopes: [...mcpScopes],
         // Unauthenticated DCR is required for clients such as ChatGPT (ADR-0009).

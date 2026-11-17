@@ -3,6 +3,7 @@ import { z } from "zod";
 import { compilePrompt } from "@/lib/compile-prompt";
 import { createAuth } from "@/server/auth";
 import { getDb } from "@/server/database";
+import { personalWorkspaceId } from "@/server/workspace";
 import { handleRunRequest } from "@/server/run-api";
 import {
   D1TemplateRepository,
@@ -23,7 +24,7 @@ async function getWorkspaceId(request: Request) {
   });
   if (!session) return null;
 
-  const workspaceId = `personal-${session.user.id}`;
+  const workspaceId = personalWorkspaceId(session.user.id);
   const db = getDb();
   // Read first so ordinary requests do not write to D1 once the membership exists.
   const membership = await db

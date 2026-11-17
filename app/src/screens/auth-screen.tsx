@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth";
+import { Alert } from "@/components/ui/alert";
 
 export function AuthScreen() {
   const [pending, setPending] = useState(false);
@@ -33,11 +34,7 @@ export function AuthScreen() {
             Sign in to keep your prompt templates private and available across devices.
           </p>
         </div>
-        {error ? (
-          <p className="text-sm text-destructive" role="alert">
-            {error}
-          </p>
-        ) : null}
+        {error ? <Alert variant="destructive">{error}</Alert> : null}
         <Button className="w-full text-md" size="lg" disabled={pending} onClick={signIn}>
           {pending ? "Opening Google…" : "Continue with Google"}
         </Button>

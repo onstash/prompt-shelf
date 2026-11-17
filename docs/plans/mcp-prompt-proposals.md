@@ -33,7 +33,7 @@ The user approves every proposed edit in Prompt Shelf before it becomes a new ve
 | Client registration | Unauthenticated dynamic client registration allowed; consent screen always shown |
 | Client ID metadata documents | To be checked: `@better-auth/cimd` exists for Better Auth 1.7.13. Not decided; DCR is the default |
 | Tool surface | Two tools: `search` (discover operations) and `execute` (run one) |
-| Scopes | `prompt-shelf.search`, `prompt-shelf.execute`, `prompt-shelf.propose`, `offline_access` |
+| Scopes | `prompt-shelf.search`, `prompt-shelf.execute`, `offline_access`. Proposals use `execute` |
 | Token lifetimes | Access token about 1 hour. Refresh token 1 week, so a connected app works for a week before reconnecting |
 | Approval | Browser session only, owner or admin role only |
 | Versioning | Immutable revisions. Proposals are separate records. Approval is a guarded write that checks `base_version` |
@@ -66,7 +66,7 @@ Blocked or open:
 
 - **CIMD is blocked.** The `@better-auth/cimd` fetcher for Node uses `node:dns` and `node:https`. The package requires DNS resolve-once with connection pinning, and the Worker `fetch` API does not appear to offer that. Needs a decision before anything is wired up.
 - **MCP transport decision.** `@better-auth/mcp` 1.7.13 documents `@modelcontextprotocol/server` v2 for MCP 2026-07-28, with `legacy: "reject"`. Total Recall uses `@modelcontextprotocol/sdk` 1.32.2. Older clients may need the legacy transport.
-- `/consent` and `/sign-in` UI are not built yet, so the browser authorization flow cannot complete.
+- `/consent` and `/login` UI are not built yet, so the browser authorization flow cannot complete.
 - `/mcp` endpoint not built (Phase 4).
 
 ## Phases
@@ -109,7 +109,7 @@ Blocked or open:
 - [ ] Verify the JWT with `jose`: issuer, audience, expiry, and scopes. Use a local JWKS, since auth and MCP share one Worker.
 - [ ] `search` returns operations and input schemas.
 - [ ] `execute` runs: `list_templates`, `get_template`, `get_revision`, `render_prompt`, `propose_update`, `get_proposal`.
-- [ ] Each operation checks its scope: read operations need `prompt-shelf.execute`, `propose_update` needs `prompt-shelf.propose`. Missing scope returns 403 `insufficient_scope`.
+- [ ] Each operation checks its scope: `search` needs `prompt-shelf.search`, and `execute` needs `prompt-shelf.execute`. Missing scope returns 403 `insufficient_scope`.
 - **Verify:** `wrangler dev` with a real MCP client. Tests for 401, 403, and each operation.
 
 ### Phase 5: Browser UI
