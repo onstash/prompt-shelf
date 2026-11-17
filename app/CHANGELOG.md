@@ -2,13 +2,15 @@
 
 ## [0.5.0](https://github.com/onstash/prompt-shelf/compare/v0.4.3...v0.5.0) (2026-11-17)
 
+
 ### Features
 
-- add MCP access with OAuth and prompt update proposals ([#29](https://github.com/onstash/prompt-shelf/issues/29)) ([f7a68a7](https://github.com/onstash/prompt-shelf/commit/f7a68a7fd10e71fc746bf76e9d9edbbb09a1f8ac))
+* add MCP access with OAuth and prompt update proposals ([#29](https://github.com/onstash/prompt-shelf/issues/29)) ([f7a68a7](https://github.com/onstash/prompt-shelf/commit/f7a68a7fd10e71fc746bf76e9d9edbbb09a1f8ac))
+
 
 ### Bug Fixes
 
-- preserve commas in select options ([#27](https://github.com/onstash/prompt-shelf/issues/27)) ([fc8f7aa](https://github.com/onstash/prompt-shelf/commit/fc8f7aaa9337da0889de30a003fccb2545d4ef6b))
+* preserve commas in select options ([#27](https://github.com/onstash/prompt-shelf/issues/27)) ([fc8f7aa](https://github.com/onstash/prompt-shelf/commit/fc8f7aaa9337da0889de30a003fccb2545d4ef6b))
 
 ## [0.4.3](https://github.com/onstash/prompt-shelf/compare/v0.4.2...v0.4.3) (2026-09-20)
 
