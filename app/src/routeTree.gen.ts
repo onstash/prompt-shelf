@@ -10,18 +10,27 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ConsentRouteImport } from './routes/consent'
 import { Route as HealthRouteImport } from './routes/health'
-import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as ApiSplatRouteImport } from './routes/api.$'
 import { Route as ExamplesExampleIdRouteImport } from './routes/examples.$exampleId'
 import { Route as TemplatesIndexRouteImport } from './routes/templates.index'
 import { Route as TemplatesTemplateIdRouteImport } from './routes/templates.$templateId'
 import { Route as TemplatesNewRouteImport } from './routes/templates.new'
+import { Route as DotwellKnownOauthProtectedResourceMcpRouteImport } from './routes/[.]well-known.oauth-protected-resource.mcp'
 import { Route as TemplatesTemplateIdEditRouteImport } from './routes/templates.$templateId_.edit'
+import { Route as DotwellKnownOauthAuthorizationServerApiAuthRouteImport } from './routes/[.]well-known.oauth-authorization-server.api.auth'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConsentRoute = ConsentRouteImport.update({
+  id: '/consent',
+  path: '/consent',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HealthRoute = HealthRouteImport.update({
@@ -29,9 +38,14 @@ const HealthRoute = HealthRouteImport.update({
   path: '/health',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SignInRoute = SignInRouteImport.update({
-  id: '/sign-in',
-  path: '/sign-in',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSplatRoute = ApiSplatRouteImport.update({
@@ -59,92 +73,132 @@ const TemplatesNewRoute = TemplatesNewRouteImport.update({
   path: '/templates/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DotwellKnownOauthProtectedResourceMcpRoute =
+  DotwellKnownOauthProtectedResourceMcpRouteImport.update({
+    id: '/.well-known/oauth-protected-resource/mcp',
+    path: '/.well-known/oauth-protected-resource/mcp',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const TemplatesTemplateIdEditRoute = TemplatesTemplateIdEditRouteImport.update({
   id: '/templates/$templateId_/edit',
   path: '/templates/$templateId/edit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DotwellKnownOauthAuthorizationServerApiAuthRoute =
+  DotwellKnownOauthAuthorizationServerApiAuthRouteImport.update({
+    id: '/.well-known/oauth-authorization-server/api/auth',
+    path: '/.well-known/oauth-authorization-server/api/auth',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/consent': typeof ConsentRoute
   '/health': typeof HealthRoute
-  '/sign-in': typeof SignInRoute
+  '/login': typeof LoginRoute
+  '/mcp': typeof McpRoute
   '/api/$': typeof ApiSplatRoute
   '/examples/$exampleId': typeof ExamplesExampleIdRoute
   '/templates/$templateId': typeof TemplatesTemplateIdRoute
   '/templates/new': typeof TemplatesNewRoute
   '/templates/': typeof TemplatesIndexRoute
+  '/.well-known/oauth-protected-resource/mcp': typeof DotwellKnownOauthProtectedResourceMcpRoute
   '/templates/$templateId/edit': typeof TemplatesTemplateIdEditRoute
+  '/.well-known/oauth-authorization-server/api/auth': typeof DotwellKnownOauthAuthorizationServerApiAuthRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/consent': typeof ConsentRoute
   '/health': typeof HealthRoute
-  '/sign-in': typeof SignInRoute
+  '/login': typeof LoginRoute
+  '/mcp': typeof McpRoute
   '/api/$': typeof ApiSplatRoute
   '/examples/$exampleId': typeof ExamplesExampleIdRoute
   '/templates/$templateId': typeof TemplatesTemplateIdRoute
   '/templates/new': typeof TemplatesNewRoute
   '/templates': typeof TemplatesIndexRoute
+  '/.well-known/oauth-protected-resource/mcp': typeof DotwellKnownOauthProtectedResourceMcpRoute
   '/templates/$templateId/edit': typeof TemplatesTemplateIdEditRoute
+  '/.well-known/oauth-authorization-server/api/auth': typeof DotwellKnownOauthAuthorizationServerApiAuthRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/consent': typeof ConsentRoute
   '/health': typeof HealthRoute
-  '/sign-in': typeof SignInRoute
+  '/login': typeof LoginRoute
+  '/mcp': typeof McpRoute
   '/api/$': typeof ApiSplatRoute
   '/examples/$exampleId': typeof ExamplesExampleIdRoute
   '/templates/$templateId': typeof TemplatesTemplateIdRoute
   '/templates/new': typeof TemplatesNewRoute
   '/templates/': typeof TemplatesIndexRoute
+  '/.well-known/oauth-protected-resource/mcp': typeof DotwellKnownOauthProtectedResourceMcpRoute
   '/templates/$templateId_/edit': typeof TemplatesTemplateIdEditRoute
+  '/.well-known/oauth-authorization-server/api/auth': typeof DotwellKnownOauthAuthorizationServerApiAuthRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/consent'
     | '/health'
-    | '/sign-in'
+    | '/login'
+    | '/mcp'
     | '/api/$'
     | '/examples/$exampleId'
     | '/templates/$templateId'
     | '/templates/new'
     | '/templates/'
+    | '/.well-known/oauth-protected-resource/mcp'
     | '/templates/$templateId/edit'
+    | '/.well-known/oauth-authorization-server/api/auth'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/consent'
     | '/health'
-    | '/sign-in'
+    | '/login'
+    | '/mcp'
     | '/api/$'
     | '/examples/$exampleId'
     | '/templates/$templateId'
     | '/templates/new'
     | '/templates'
+    | '/.well-known/oauth-protected-resource/mcp'
     | '/templates/$templateId/edit'
+    | '/.well-known/oauth-authorization-server/api/auth'
   id:
     | '__root__'
     | '/'
+    | '/consent'
     | '/health'
-    | '/sign-in'
+    | '/login'
+    | '/mcp'
     | '/api/$'
     | '/examples/$exampleId'
     | '/templates/$templateId'
     | '/templates/new'
     | '/templates/'
+    | '/.well-known/oauth-protected-resource/mcp'
     | '/templates/$templateId_/edit'
+    | '/.well-known/oauth-authorization-server/api/auth'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ConsentRoute: typeof ConsentRoute
   HealthRoute: typeof HealthRoute
-  SignInRoute: typeof SignInRoute
+  LoginRoute: typeof LoginRoute
+  McpRoute: typeof McpRoute
   ApiSplatRoute: typeof ApiSplatRoute
   ExamplesExampleIdRoute: typeof ExamplesExampleIdRoute
   TemplatesTemplateIdRoute: typeof TemplatesTemplateIdRoute
   TemplatesNewRoute: typeof TemplatesNewRoute
   TemplatesIndexRoute: typeof TemplatesIndexRoute
+  DotwellKnownOauthProtectedResourceMcpRoute: typeof DotwellKnownOauthProtectedResourceMcpRoute
   TemplatesTemplateIdEditRoute: typeof TemplatesTemplateIdEditRoute
+  DotwellKnownOauthAuthorizationServerApiAuthRoute: typeof DotwellKnownOauthAuthorizationServerApiAuthRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -156,6 +210,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/consent': {
+      id: '/consent'
+      path: '/consent'
+      fullPath: '/consent'
+      preLoaderRoute: typeof ConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/health': {
       id: '/health'
       path: '/health'
@@ -163,11 +224,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HealthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sign-in': {
-      id: '/sign-in'
-      path: '/sign-in'
-      fullPath: '/sign-in'
-      preLoaderRoute: typeof SignInRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/$': {
@@ -205,6 +273,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TemplatesNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.well-known/oauth-protected-resource/mcp': {
+      id: '/.well-known/oauth-protected-resource/mcp'
+      path: '/.well-known/oauth-protected-resource/mcp'
+      fullPath: '/.well-known/oauth-protected-resource/mcp'
+      preLoaderRoute: typeof DotwellKnownOauthProtectedResourceMcpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/templates/$templateId_/edit': {
       id: '/templates/$templateId_/edit'
       path: '/templates/$templateId/edit'
@@ -212,19 +287,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TemplatesTemplateIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.well-known/oauth-authorization-server/api/auth': {
+      id: '/.well-known/oauth-authorization-server/api/auth'
+      path: '/.well-known/oauth-authorization-server/api/auth'
+      fullPath: '/.well-known/oauth-authorization-server/api/auth'
+      preLoaderRoute: typeof DotwellKnownOauthAuthorizationServerApiAuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ConsentRoute: ConsentRoute,
   HealthRoute: HealthRoute,
-  SignInRoute: SignInRoute,
+  LoginRoute: LoginRoute,
+  McpRoute: McpRoute,
   ApiSplatRoute: ApiSplatRoute,
   ExamplesExampleIdRoute: ExamplesExampleIdRoute,
   TemplatesTemplateIdRoute: TemplatesTemplateIdRoute,
   TemplatesNewRoute: TemplatesNewRoute,
   TemplatesIndexRoute: TemplatesIndexRoute,
+  DotwellKnownOauthProtectedResourceMcpRoute:
+    DotwellKnownOauthProtectedResourceMcpRoute,
   TemplatesTemplateIdEditRoute: TemplatesTemplateIdEditRoute,
+  DotwellKnownOauthAuthorizationServerApiAuthRoute:
+    DotwellKnownOauthAuthorizationServerApiAuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

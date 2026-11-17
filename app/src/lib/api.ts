@@ -127,10 +127,21 @@ export const api = {
   updateTemplate: (
     id: string,
     input: Pick<Template, "title" | "description" | "body" | "fields">,
+    baseVersion?: number,
   ) =>
     request<Template>(`/api/templates/${id}`, {
       method: "PUT",
-      body: JSON.stringify(input),
+      body: JSON.stringify({ ...input, baseVersion }),
+    }),
+  continueOAuth: (oauthQuery: string) =>
+    request<{ url: string }>("/api/auth/oauth2/continue", {
+      method: "POST",
+      body: JSON.stringify({ oauth_query: oauthQuery }),
+    }),
+  respondToConsent: (accept: boolean, oauthQuery: string) =>
+    request<{ redirect: true; url: string }>("/api/auth/oauth2/consent", {
+      method: "POST",
+      body: JSON.stringify({ accept, oauth_query: oauthQuery }),
     }),
   createTemplate: (input: Pick<Template, "title" | "description" | "body" | "fields">) =>
     request<Template>("/api/templates", {

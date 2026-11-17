@@ -1,3 +1,4 @@
+import type { Db } from "./db.ts";
 import type { Field } from "./template-repository";
 
 export type SavedRunSummary = {
@@ -57,9 +58,9 @@ function mapRun(row: RunRow): SavedRun {
 }
 
 export class D1RunRepository {
-  private readonly db: D1Database;
+  private readonly db: Db;
 
-  constructor(db: D1Database) {
+  constructor(db: Db) {
     this.db = db;
   }
 
@@ -70,7 +71,7 @@ export class D1RunRepository {
     values: Record<string, string>,
   ): Promise<SavedRun | null> {
     const revision = await this.db
-      .prepare(
+      .query(
         `SELECT 1
          FROM templates t
          JOIN template_revisions tr ON tr.template_id = t.id
@@ -82,7 +83,7 @@ export class D1RunRepository {
 
     const id = crypto.randomUUID();
     await this.db
-      .prepare(
+      .query(
         `INSERT INTO saved_runs (id, workspace_id, template_id, template_version, values_json)
          VALUES (?, ?, ?, ?, ?)`,
       )
@@ -98,7 +99,7 @@ export class D1RunRepository {
     if (cursor && (!cursorCreatedAt || !cursorId)) return { runs: [], nextCursor: null };
 
     const result = await this.db
-      .prepare(
+      .query(
         `${selectRun} WHERE sr.workspace_id = ?
          AND (? IS NULL OR sr.created_at < ? OR (sr.created_at = ? AND sr.id < ?))
          ORDER BY sr.created_at DESC, sr.id DESC LIMIT ?`,
@@ -130,7 +131,7 @@ export class D1RunRepository {
 
   async find(workspaceId: string, id: string): Promise<SavedRun | null> {
     const row = await this.db
-      .prepare(`${selectRun} WHERE sr.workspace_id = ? AND sr.id = ?`)
+      .query(`${selectRun} WHERE sr.workspace_id = ? AND sr.id = ?`)
       .bind(workspaceId, id)
       .first<RunRow>();
     return row ? mapRun(row) : null;
@@ -138,7 +139,7 @@ export class D1RunRepository {
 
   async delete(workspaceId: string, id: string): Promise<boolean> {
     const result = await this.db
-      .prepare("DELETE FROM saved_runs WHERE id = ? AND workspace_id = ?")
+      .query("DELETE FROM saved_runs WHERE id = ? AND workspace_id = ?")
       .bind(id, workspaceId)
       .run();
     return Boolean(result.meta.changes);

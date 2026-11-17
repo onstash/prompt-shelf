@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { Db } from "./db.ts";
 import { D1RunRepository } from "./run-repository.ts";
 
 const cursorSchema = z
@@ -6,10 +7,20 @@ const cursorSchema = z
   .max(200)
   .regex(/^[^|]+\|[^|]+$/);
 
+const maxValueEntries = 100;
+const maxValueLength = 10_000;
+const maxSerializedValuesLength = 100_000;
+
 const createRunSchema = z
   .object({
     templateVersion: z.number().int().positive(),
-    values: z.record(z.string(), z.string()),
+    values: z
+      .record(z.string().max(100), z.string().max(maxValueLength))
+      .refine((values) => Object.keys(values).length <= maxValueEntries, "Too many values")
+      .refine(
+        (values) => JSON.stringify(values).length <= maxSerializedValuesLength,
+        "Values are too large",
+      ),
   })
   .strict();
 
@@ -20,7 +31,7 @@ function jsonError(error: string, status: number) {
 export async function handleRunRequest(
   request: Request,
   workspaceId: string | null,
-  db: D1Database,
+  db: Db,
 ): Promise<Response> {
   if (!workspaceId) return jsonError("Authentication required", 401);
 
