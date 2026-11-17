@@ -127,10 +127,11 @@ export const api = {
   updateTemplate: (
     id: string,
     input: Pick<Template, "title" | "description" | "body" | "fields">,
+    baseVersion?: number,
   ) =>
     request<Template>(`/api/templates/${id}`, {
       method: "PUT",
-      body: JSON.stringify(input),
+      body: JSON.stringify({ ...input, baseVersion }),
     }),
   createTemplate: (input: Pick<Template, "title" | "description" | "body" | "fields">) =>
     request<Template>("/api/templates", {

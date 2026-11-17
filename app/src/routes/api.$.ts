@@ -1,8 +1,8 @@
-import { env } from "cloudflare:workers";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { compilePrompt } from "@/lib/compile-prompt";
 import { createAuth } from "@/server/auth";
+import { getDb } from "@/server/database";
 import { handleRunRequest } from "@/server/run-api";
 import {
   D1TemplateRepository,
@@ -18,20 +18,29 @@ const productEventSchema = z
   .strict();
 
 async function getWorkspaceId(request: Request) {
-  const session = await createAuth(env, request.url).api.getSession({
+  const session = await createAuth(request.url).api.getSession({
     headers: request.headers,
   });
   if (!session) return null;
 
   const workspaceId = `personal-${session.user.id}`;
-  await env.DB.batch([
-    env.DB.prepare("INSERT OR IGNORE INTO workspaces (id, name) VALUES (?, ?)").bind(
-      workspaceId,
-      `${session.user.name}'s shelf`,
-    ),
-    env.DB.prepare(
-      "INSERT OR IGNORE INTO workspace_memberships (workspace_id, user_id, role) VALUES (?, ?, 'owner')",
-    ).bind(workspaceId, session.user.id),
+  const db = getDb();
+  // Read first so ordinary requests do not write to D1 once the membership exists.
+  const membership = await db
+    .query("SELECT 1 FROM workspace_memberships WHERE workspace_id = ? AND user_id = ?")
+    .bind(workspaceId, session.user.id)
+    .first();
+  if (membership) return workspaceId;
+
+  await db.transaction([
+    db
+      .query("INSERT OR IGNORE INTO workspaces (id, name) VALUES (?, ?)")
+      .bind(workspaceId, `${session.user.name}'s shelf`),
+    db
+      .query(
+        "INSERT OR IGNORE INTO workspace_memberships (workspace_id, user_id, role) VALUES (?, ?, 'owner')",
+      )
+      .bind(workspaceId, session.user.id),
   ]);
   return workspaceId;
 }
@@ -44,9 +53,10 @@ async function handle(request: Request) {
   const url = new URL(request.url);
   const path = url.pathname;
 
-  if (path.startsWith("/api/auth/")) return createAuth(env, request.url).handler(request);
+  if (path.startsWith("/api/auth/")) return createAuth(request.url).handler(request);
 
-  const repository = new D1TemplateRepository(env.DB);
+  const db = getDb();
+  const repository = new D1TemplateRepository(db);
   const exampleMatch = path.match(/^\/api\/examples\/([^/]+)(\/compile)?$/);
   if (exampleMatch) {
     const example = await repository.findSystemExample(decodeURIComponent(exampleMatch[1]));
@@ -83,9 +93,10 @@ async function handle(request: Request) {
         return jsonError("Template not found", 404);
     }
 
-    await env.DB.prepare(
-      "INSERT INTO product_events (id, event_name, template_id, workspace_id) VALUES (?, ?, ?, ?)",
-    )
+    await db
+      .query(
+        "INSERT INTO product_events (id, event_name, template_id, workspace_id) VALUES (?, ?, ?, ?)",
+      )
       .bind(crypto.randomUUID(), name, templateId, workspaceId)
       .run();
     return Response.json({ accepted: true }, { status: 202 });
@@ -97,7 +108,7 @@ async function handle(request: Request) {
   if (!isTemplatePath && !isRunPath) return jsonError("Not found", 404);
 
   const workspaceId = await getWorkspaceId(request);
-  if (isRunPath || isCreateRunPath) return handleRunRequest(request, workspaceId, env.DB);
+  if (isRunPath || isCreateRunPath) return handleRunRequest(request, workspaceId, db);
   if (!workspaceId) return jsonError("Authentication required", 401);
 
   if (path === "/api/templates") {
@@ -119,11 +130,8 @@ async function handle(request: Request) {
       updatedAt: new Date().toISOString(),
       isExample: false,
     };
-    try {
-      return Response.json(await repository.create(workspaceId, created), { status: 201 });
-    } catch {
-      return jsonError("A template with this name already exists", 409);
-    }
+    // Only the generated primary key is unique here, so failures are server errors, not conflicts.
+    return Response.json(await repository.create(workspaceId, created), { status: 201 });
   }
 
   const templateMatch = path.match(/^\/api\/templates\/([^/]+)(\/compile|\/revisions)?$/);
@@ -154,7 +162,7 @@ async function handle(request: Request) {
   }
   if (request.method === "PUT") {
     // SAFETY: required fields are checked below; optional fields retain the existing API contract.
-    const input = (await request.json()) as Partial<Template>;
+    const input = (await request.json()) as Partial<Template> & { baseVersion?: number };
     if (!input.title?.trim() || !input.body?.trim())
       return jsonError("Title and prompt body are required", 422);
     const update: TemplateInput = {
@@ -164,8 +172,24 @@ async function handle(request: Request) {
       body: input.body,
       fields: input.fields ?? [],
     };
-    const updated = await repository.update(workspaceId, id, update);
-    return updated ? Response.json(updated) : jsonError("System examples cannot be edited", 403);
+    const baseVersion = input.baseVersion;
+    if (baseVersion !== undefined && (!Number.isInteger(baseVersion) || baseVersion < 1))
+      return jsonError("Invalid base version", 422);
+
+    const result = await repository.update(workspaceId, id, update, baseVersion);
+    switch (result.status) {
+      case "updated":
+        return Response.json(result.template);
+      case "not_found":
+        return jsonError("Template not found", 404);
+      case "read_only":
+        return jsonError("System examples cannot be edited", 403);
+      case "conflict":
+        return Response.json(
+          { error: "Template changed since it was loaded", currentVersion: result.currentVersion },
+          { status: 409 },
+        );
+    }
   }
 
   return new Response(null, { status: 405 });

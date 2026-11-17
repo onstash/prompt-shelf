@@ -1,33 +1,44 @@
-import { drizzleAdapter } from "@better-auth/drizzle-adapter";
+import { mcp } from "@better-auth/mcp";
 import { betterAuth } from "better-auth";
-import { drizzle } from "drizzle-orm/d1";
-import { authSchema } from "./auth-schema";
+import { jwt } from "better-auth/plugins";
+import { env } from "cloudflare:workers";
+import { getDb } from "./database";
 
-export type AppBindings = {
-  DB: D1Database;
-  BETTER_AUTH_SECRET: string;
-  GOOGLE_CLIENT_ID: string;
-  GOOGLE_CLIENT_SECRET: string;
-  FRONTEND_URL?: string;
-};
+export const mcpScopes = [
+  "prompt-shelf.search",
+  "prompt-shelf.execute",
+  "prompt-shelf.propose",
+  "offline_access",
+] as const;
 
-export function createAuth(bindings: AppBindings, requestUrl: string) {
+export function createAuth(requestUrl: string) {
   const origin = new URL(requestUrl).origin;
   return betterAuth({
-    database: drizzleAdapter(drizzle(bindings.DB), {
-      provider: "sqlite",
-      schema: authSchema,
-    }),
+    // Better Auth reads and writes through the timed Db wrapper.
+    database: getDb(),
     baseURL: origin,
-    secret: bindings.BETTER_AUTH_SECRET,
-    trustedOrigins: ["http://localhost:5173", bindings.FRONTEND_URL].filter(
-      (value): value is string => Boolean(value),
+    secret: env.BETTER_AUTH_SECRET,
+    trustedOrigins: ["http://localhost:5173", env.FRONTEND_URL].filter((value): value is string =>
+      Boolean(value),
     ),
     socialProviders: {
       google: {
-        clientId: bindings.GOOGLE_CLIENT_ID,
-        clientSecret: bindings.GOOGLE_CLIENT_SECRET,
+        clientId: env.GOOGLE_CLIENT_ID,
+        clientSecret: env.GOOGLE_CLIENT_SECRET,
       },
     },
+    plugins: [
+      jwt(),
+      mcp({
+        resource: `${origin}/mcp`,
+        loginPage: "/sign-in",
+        consentPage: "/consent",
+        scopes: [...mcpScopes],
+        // Unauthenticated DCR is required for clients such as ChatGPT (ADR-0009).
+        // The consent screen still requires a signed-in user before any access.
+        allowDynamicClientRegistration: true,
+        allowUnauthenticatedClientRegistration: true,
+      }),
+    ],
   });
 }

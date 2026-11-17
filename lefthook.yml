@@ -5,3 +5,8 @@ pre-commit:
       run: npm run lint
     format:
       run: npm run format:check
+
+commit-msg:
+  commands:
+    conventional-commit:
+      run: pnpm exec commitlint --edit {1}

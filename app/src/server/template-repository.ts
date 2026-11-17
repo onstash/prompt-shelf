@@ -1,3 +1,4 @@
+import type { Db } from "./db.ts";
 export type Field = {
   key: string;
   label: string;
@@ -30,12 +31,23 @@ export type TemplateInput = Pick<
   "title" | "description" | "category" | "body" | "fields"
 >;
 
+export type TemplateUpdateResult =
+  | { status: "updated"; template: Template }
+  | { status: "not_found" }
+  | { status: "read_only" }
+  | { status: "conflict"; currentVersion: number };
+
 export interface TemplateRepository {
   list(workspaceId: string): Promise<Template[]>;
   find(workspaceId: string, id: string): Promise<Template | null>;
   findSystemExample(id: string): Promise<Template | null>;
   create(workspaceId: string, template: Template): Promise<Template>;
-  update(workspaceId: string, id: string, input: TemplateInput): Promise<Template | null>;
+  update(
+    workspaceId: string,
+    id: string,
+    input: TemplateInput,
+    baseVersion?: number,
+  ): Promise<TemplateUpdateResult>;
   delete(workspaceId: string, id: string): Promise<boolean>;
   listRevisions(workspaceId: string, id: string): Promise<TemplateRevision[]>;
 }
@@ -76,15 +88,15 @@ function mapTemplate(row: TemplateRow): Template {
 }
 
 export class D1TemplateRepository implements TemplateRepository {
-  private readonly db: D1Database;
+  private readonly db: Db;
 
-  constructor(db: D1Database) {
+  constructor(db: Db) {
     this.db = db;
   }
 
   async list(workspaceId: string): Promise<Template[]> {
     const result = await this.db
-      .prepare(
+      .query(
         `${selectCurrentRevision} WHERE t.workspace_id = ? OR t.workspace_id IS NULL ORDER BY t.updated_at DESC`,
       )
       .bind(workspaceId)
@@ -94,7 +106,7 @@ export class D1TemplateRepository implements TemplateRepository {
 
   async findSystemExample(id: string): Promise<Template | null> {
     const row = await this.db
-      .prepare(`${selectCurrentRevision} WHERE t.id = ? AND t.workspace_id IS NULL`)
+      .query(`${selectCurrentRevision} WHERE t.id = ? AND t.workspace_id IS NULL`)
       .bind(id)
       .first<TemplateRow>();
     return row ? mapTemplate(row) : null;
@@ -102,7 +114,7 @@ export class D1TemplateRepository implements TemplateRepository {
 
   async find(workspaceId: string, id: string): Promise<Template | null> {
     const row = await this.db
-      .prepare(
+      .query(
         `${selectCurrentRevision} WHERE t.id = ? AND (t.workspace_id = ? OR t.workspace_id IS NULL)`,
       )
       .bind(id, workspaceId)
@@ -111,9 +123,9 @@ export class D1TemplateRepository implements TemplateRepository {
   }
 
   async create(workspaceId: string, template: Template): Promise<Template> {
-    await this.db.batch([
+    await this.db.transaction([
       this.db
-        .prepare(`INSERT INTO templates (id, title, description, category, current_version, workspace_id)
+        .query(`INSERT INTO templates (id, title, description, category, current_version, workspace_id)
                   VALUES (?, ?, ?, ?, ?, ?)`)
         .bind(
           template.id,
@@ -124,7 +136,7 @@ export class D1TemplateRepository implements TemplateRepository {
           workspaceId,
         ),
       this.db
-        .prepare(`INSERT INTO template_revisions (template_id, version, body, fields_json)
+        .query(`INSERT INTO template_revisions (template_id, version, body, fields_json)
                   VALUES (?, ?, ?, ?)`)
         .bind(template.id, template.version, template.body, JSON.stringify(template.fields)),
     ]);
@@ -136,7 +148,7 @@ export class D1TemplateRepository implements TemplateRepository {
   async listRevisions(workspaceId: string, id: string): Promise<TemplateRevision[]> {
     if (!(await this.find(workspaceId, id))) return [];
     const result = await this.db
-      .prepare(
+      .query(
         `SELECT r.version, r.body, r.fields_json, r.created_at
          FROM template_revisions r
          JOIN templates t ON t.id = r.template_id
@@ -156,29 +168,71 @@ export class D1TemplateRepository implements TemplateRepository {
 
   async delete(workspaceId: string, id: string): Promise<boolean> {
     const result = await this.db
-      .prepare("DELETE FROM templates WHERE id = ? AND workspace_id = ?")
+      .query("DELETE FROM templates WHERE id = ? AND workspace_id = ?")
       .bind(id, workspaceId)
       .run();
     return Boolean(result.meta.changes);
   }
 
-  async update(workspaceId: string, id: string, input: TemplateInput): Promise<Template | null> {
+  /**
+   * Saves a new revision only if the template is still at `baseVersion`.
+   *
+   * Both statements run in one D1 batch (a single transaction). Each one repeats the
+   * same version guard, so a stale or concurrent save writes nothing. If the guard
+   * fails, the caller gets a conflict instead of a partial or overwritten update.
+   */
+  async update(
+    workspaceId: string,
+    id: string,
+    input: TemplateInput,
+    baseVersion?: number,
+  ): Promise<TemplateUpdateResult> {
     const existing = await this.find(workspaceId, id);
-    if (!existing) return null;
-    const updated = { ...existing, ...input, version: existing.version + 1 };
-    const result = await this.db
-      .prepare(`UPDATE templates
-                SET title = ?, description = ?, category = ?, current_version = ?, updated_at = CURRENT_TIMESTAMP
-                WHERE id = ? AND workspace_id = ?`)
-      .bind(updated.title, updated.description, updated.category, updated.version, id, workspaceId)
-      .run();
-    if (!result.meta.changes) return null;
-    await this.db
-      .prepare(
-        `INSERT INTO template_revisions (template_id, version, body, fields_json) VALUES (?, ?, ?, ?)`,
-      )
-      .bind(id, updated.version, updated.body, JSON.stringify(updated.fields))
-      .run();
-    return this.find(workspaceId, id);
+    if (!existing) return { status: "not_found" };
+    if (existing.isExample) return { status: "read_only" };
+
+    const expectedVersion = baseVersion ?? existing.version;
+    const nextVersion = expectedVersion + 1;
+    const [, templateUpdate] = await this.db.transaction([
+      this.db
+        .query(
+          `INSERT INTO template_revisions (template_id, version, body, fields_json)
+           SELECT t.id, ?, ?, ? FROM templates t
+           WHERE t.id = ? AND t.workspace_id = ? AND t.current_version = ?`,
+        )
+        .bind(
+          nextVersion,
+          input.body,
+          JSON.stringify(input.fields),
+          id,
+          workspaceId,
+          expectedVersion,
+        ),
+      this.db
+        .query(
+          `UPDATE templates
+           SET title = ?, description = ?, category = ?, current_version = ?, updated_at = CURRENT_TIMESTAMP
+           WHERE id = ? AND workspace_id = ? AND current_version = ?`,
+        )
+        .bind(
+          input.title,
+          input.description,
+          input.category,
+          nextVersion,
+          id,
+          workspaceId,
+          expectedVersion,
+        ),
+    ]);
+
+    if (!templateUpdate?.meta.changes) {
+      const current = await this.find(workspaceId, id);
+      if (!current) return { status: "not_found" };
+      return { status: "conflict", currentVersion: current.version };
+    }
+
+    const updated = await this.find(workspaceId, id);
+    if (!updated) throw new Error("Updated template could not be loaded");
+    return { status: "updated", template: updated };
   }
 }

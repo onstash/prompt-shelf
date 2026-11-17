@@ -8,7 +8,7 @@ import { TemplateCreator, type TemplateDraft } from "@/components/template-creat
 import { TemplateDetail } from "@/components/template-detail";
 import { TemplateDetailSkeleton } from "@/components/template-detail-skeleton";
 import { TemplateWorkspace } from "@/components/template-workspace";
-import { api, type Template, type TemplateField } from "@/lib/api";
+import { ApiError, api, type Template, type TemplateField } from "@/lib/api";
 import { copyAndSaveRun } from "@/lib/copy-and-save-run";
 import { authClient } from "@/lib/auth";
 
@@ -87,7 +87,7 @@ export function TemplateScreen({ templates, mode, initialTemplateId }: Props) {
   const saveMutation = useMutation({
     mutationFn: () =>
       formMode === "edit"
-        ? api.updateTemplate(selectedTemplateId, draft)
+        ? api.updateTemplate(selectedTemplateId, draft, template?.version)
         : api.createTemplate(draft),
   });
 
@@ -157,7 +157,13 @@ export function TemplateScreen({ templates, mode, initialTemplateId }: Props) {
         to: "/templates/$templateId",
         params: { templateId: savedTemplate.id },
       });
-    } catch {
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 409) {
+        void queryClient.invalidateQueries({ queryKey: ["templates", selectedTemplateId] });
+        return toast.error(
+          "This template changed in another tab. Reload to see the latest version, then save again.",
+        );
+      }
       toast.error("Could not save this template");
     }
   };

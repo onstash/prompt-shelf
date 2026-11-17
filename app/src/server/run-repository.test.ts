@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { DatabaseSync, type SQLInputValue } from "node:sqlite";
+import { createDb } from "./db.ts";
 import { D1RunRepository } from "./run-repository.ts";
+
+// Test databases do not need query logs.
+const quietLog = () => undefined;
 
 function createDatabase() {
   const sqlite = new DatabaseSync(":memory:");
@@ -73,7 +77,9 @@ function createDatabase() {
   });
   const databaseBoundary: unknown = testDatabase;
   // SAFETY: this adapter implements the D1 methods used by D1RunRepository against SQLite.
-  return { repository: new D1RunRepository(databaseBoundary as D1Database), sqlite };
+  // SAFETY: the test adapter implements the D1 methods that createDb calls.
+  const wrapped = createDb(databaseBoundary as D1Database, quietLog);
+  return { repository: new D1RunRepository(wrapped), sqlite };
 }
 
 test("creates a run with exact revision and empty values", async () => {
