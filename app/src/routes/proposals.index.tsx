@@ -24,7 +24,7 @@ const searchSchema = z.object({
     .catch(undefined),
 });
 
-export const Route = createFileRoute("/proposals")({
+export const Route = createFileRoute("/proposals/")({
   head: () => privatePageHead("Proposed edits | Prompt Shelf"),
   validateSearch: searchSchema,
   beforeLoad: async () => {
