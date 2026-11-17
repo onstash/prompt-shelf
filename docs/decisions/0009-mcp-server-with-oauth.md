@@ -36,3 +36,9 @@ Host an MCP endpoint at `/mcp` inside the Prompt Shelf Worker. Prompt Shelf is b
 - Revoking a connected app must take effect immediately. A leaked refresh token works for up to a week until revoked.
 - Unauthenticated registration lets any app create a client ID. Access still requires a signed-in user to approve it.
 - Prompt Shelf needs its own migrations for the OAuth tables (ADR-0002).
+
+## Revocation and rate limits
+
+- Revoking a connection deletes its consent and its stored refresh and access tokens. Access tokens are verified by signature, so a token already held can work until it expires, at most one hour.
+- Token and client registration endpoints are rate limited in the database (`rateLimit` table), so limits hold across Worker isolates.
+

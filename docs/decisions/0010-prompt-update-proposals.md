@@ -31,3 +31,10 @@ AI clients may suggest edits to a prompt, but a user must approve each edit befo
 - A stale proposal cannot silently replace a newer version.
 - Rejected and conflicting proposals stay visible until deleted, so the user can see what was suggested.
 - The browser editor sends `baseVersion` on save, so direct edits follow the same version rule.
+
+## Decision endpoints and limits
+
+- Proposals are listed, read with a server-computed diff, approved, and rejected through browser-only `/api/proposals` endpoints. Those endpoints reject MCP bearer tokens.
+- Only owners and admins may decide. Members may propose.
+- Each client may create at most 20 proposals per hour in a workspace.
+

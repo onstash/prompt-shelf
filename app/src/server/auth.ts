@@ -37,6 +37,17 @@ function buildAuth(origin: string) {
         clientSecret: env.GOOGLE_CLIENT_SECRET,
       },
     },
+    // Durable rate limits. Token and registration endpoints get stricter limits.
+    rateLimit: {
+      enabled: true,
+      storage: "database",
+      window: 60,
+      max: 120,
+      customRules: {
+        "/oauth2/token": { window: 60, max: 20 },
+        "/oauth2/register": { window: 3600, max: 10 },
+      },
+    },
     plugins: [
       jwt(),
       mcp({

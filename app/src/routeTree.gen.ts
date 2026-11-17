@@ -10,12 +10,15 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ConnectionsRouteImport } from './routes/connections'
 import { Route as ConsentRouteImport } from './routes/consent'
 import { Route as HealthRouteImport } from './routes/health'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as McpRouteImport } from './routes/mcp'
+import { Route as ProposalsRouteImport } from './routes/proposals'
 import { Route as ApiSplatRouteImport } from './routes/api.$'
 import { Route as ExamplesExampleIdRouteImport } from './routes/examples.$exampleId'
+import { Route as ProposalsProposalIdRouteImport } from './routes/proposals.$proposalId'
 import { Route as TemplatesIndexRouteImport } from './routes/templates.index'
 import { Route as TemplatesTemplateIdRouteImport } from './routes/templates.$templateId'
 import { Route as TemplatesNewRouteImport } from './routes/templates.new'
@@ -26,6 +29,11 @@ import { Route as DotwellKnownOauthAuthorizationServerApiAuthRouteImport } from 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConnectionsRoute = ConnectionsRouteImport.update({
+  id: '/connections',
+  path: '/connections',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConsentRoute = ConsentRouteImport.update({
@@ -48,6 +56,11 @@ const McpRoute = McpRouteImport.update({
   path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProposalsRoute = ProposalsRouteImport.update({
+  id: '/proposals',
+  path: '/proposals',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiSplatRoute = ApiSplatRouteImport.update({
   id: '/api/$',
   path: '/api/$',
@@ -57,6 +70,11 @@ const ExamplesExampleIdRoute = ExamplesExampleIdRouteImport.update({
   id: '/examples/$exampleId',
   path: '/examples/$exampleId',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ProposalsProposalIdRoute = ProposalsProposalIdRouteImport.update({
+  id: '/$proposalId',
+  path: '/$proposalId',
+  getParentRoute: () => ProposalsRoute,
 } as any)
 const TemplatesIndexRoute = TemplatesIndexRouteImport.update({
   id: '/templates/',
@@ -93,12 +111,15 @@ const DotwellKnownOauthAuthorizationServerApiAuthRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/connections': typeof ConnectionsRoute
   '/consent': typeof ConsentRoute
   '/health': typeof HealthRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
+  '/proposals': typeof ProposalsRouteWithChildren
   '/api/$': typeof ApiSplatRoute
   '/examples/$exampleId': typeof ExamplesExampleIdRoute
+  '/proposals/$proposalId': typeof ProposalsProposalIdRoute
   '/templates/$templateId': typeof TemplatesTemplateIdRoute
   '/templates/new': typeof TemplatesNewRoute
   '/templates/': typeof TemplatesIndexRoute
@@ -108,12 +129,15 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/connections': typeof ConnectionsRoute
   '/consent': typeof ConsentRoute
   '/health': typeof HealthRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
+  '/proposals': typeof ProposalsRouteWithChildren
   '/api/$': typeof ApiSplatRoute
   '/examples/$exampleId': typeof ExamplesExampleIdRoute
+  '/proposals/$proposalId': typeof ProposalsProposalIdRoute
   '/templates/$templateId': typeof TemplatesTemplateIdRoute
   '/templates/new': typeof TemplatesNewRoute
   '/templates': typeof TemplatesIndexRoute
@@ -124,12 +148,15 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/connections': typeof ConnectionsRoute
   '/consent': typeof ConsentRoute
   '/health': typeof HealthRoute
   '/login': typeof LoginRoute
   '/mcp': typeof McpRoute
+  '/proposals': typeof ProposalsRouteWithChildren
   '/api/$': typeof ApiSplatRoute
   '/examples/$exampleId': typeof ExamplesExampleIdRoute
+  '/proposals/$proposalId': typeof ProposalsProposalIdRoute
   '/templates/$templateId': typeof TemplatesTemplateIdRoute
   '/templates/new': typeof TemplatesNewRoute
   '/templates/': typeof TemplatesIndexRoute
@@ -141,12 +168,15 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/connections'
     | '/consent'
     | '/health'
     | '/login'
     | '/mcp'
+    | '/proposals'
     | '/api/$'
     | '/examples/$exampleId'
+    | '/proposals/$proposalId'
     | '/templates/$templateId'
     | '/templates/new'
     | '/templates/'
@@ -156,12 +186,15 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/connections'
     | '/consent'
     | '/health'
     | '/login'
     | '/mcp'
+    | '/proposals'
     | '/api/$'
     | '/examples/$exampleId'
+    | '/proposals/$proposalId'
     | '/templates/$templateId'
     | '/templates/new'
     | '/templates'
@@ -171,12 +204,15 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/connections'
     | '/consent'
     | '/health'
     | '/login'
     | '/mcp'
+    | '/proposals'
     | '/api/$'
     | '/examples/$exampleId'
+    | '/proposals/$proposalId'
     | '/templates/$templateId'
     | '/templates/new'
     | '/templates/'
@@ -187,10 +223,12 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ConnectionsRoute: typeof ConnectionsRoute
   ConsentRoute: typeof ConsentRoute
   HealthRoute: typeof HealthRoute
   LoginRoute: typeof LoginRoute
   McpRoute: typeof McpRoute
+  ProposalsRoute: typeof ProposalsRouteWithChildren
   ApiSplatRoute: typeof ApiSplatRoute
   ExamplesExampleIdRoute: typeof ExamplesExampleIdRoute
   TemplatesTemplateIdRoute: typeof TemplatesTemplateIdRoute
@@ -208,6 +246,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/connections': {
+      id: '/connections'
+      path: '/connections'
+      fullPath: '/connections'
+      preLoaderRoute: typeof ConnectionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/consent': {
@@ -238,6 +283,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/proposals': {
+      id: '/proposals'
+      path: '/proposals'
+      fullPath: '/proposals'
+      preLoaderRoute: typeof ProposalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/$': {
       id: '/api/$'
       path: '/api/$'
@@ -251,6 +303,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/examples/$exampleId'
       preLoaderRoute: typeof ExamplesExampleIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/proposals/$proposalId': {
+      id: '/proposals/$proposalId'
+      path: '/$proposalId'
+      fullPath: '/proposals/$proposalId'
+      preLoaderRoute: typeof ProposalsProposalIdRouteImport
+      parentRoute: typeof ProposalsRoute
     }
     '/templates/': {
       id: '/templates/'
@@ -297,12 +356,26 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ProposalsRouteChildren {
+  ProposalsProposalIdRoute: typeof ProposalsProposalIdRoute
+}
+
+const ProposalsRouteChildren: ProposalsRouteChildren = {
+  ProposalsProposalIdRoute: ProposalsProposalIdRoute,
+}
+
+const ProposalsRouteWithChildren = ProposalsRoute._addFileChildren(
+  ProposalsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ConnectionsRoute: ConnectionsRoute,
   ConsentRoute: ConsentRoute,
   HealthRoute: HealthRoute,
   LoginRoute: LoginRoute,
   McpRoute: McpRoute,
+  ProposalsRoute: ProposalsRouteWithChildren,
   ApiSplatRoute: ApiSplatRoute,
   ExamplesExampleIdRoute: ExamplesExampleIdRoute,
   TemplatesTemplateIdRoute: TemplatesTemplateIdRoute,

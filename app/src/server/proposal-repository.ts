@@ -114,6 +114,18 @@ export class D1ProposalRepository {
     return { status: "created", proposal };
   }
 
+  /** Proposals this client created in the workspace since `since`. Used for the propose rate limit. */
+  async countSince(workspaceId: string, clientId: string | null, since: string): Promise<number> {
+    const row = await this.db
+      .query(
+        `SELECT COUNT(*) AS total FROM template_update_proposals
+         WHERE workspace_id = ? AND created_by_client_id IS ? AND created_at >= ?`,
+      )
+      .bind(workspaceId, clientId, since)
+      .first<{ total: number }>();
+    return row?.total ?? 0;
+  }
+
   async list(workspaceId: string, status: ProposalStatus): Promise<Proposal[]> {
     const result = await this.db
       .query(`${selectProposal} WHERE workspace_id = ? AND status = ? ORDER BY created_at DESC`)

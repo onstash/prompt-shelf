@@ -1,7 +1,9 @@
 import { createAuth } from "./auth.ts";
 import type { Db } from "./db.ts";
+import { diffProposal } from "./proposal-diff.ts";
 import { canDecideProposals } from "./proposal-permissions.ts";
 import { D1ProposalRepository, type ProposalDecisionResult } from "./proposal-repository.ts";
+import { D1TemplateRepository } from "./template-repository.ts";
 import { personalWorkspaceId } from "./workspace.ts";
 
 function json(body: object, status = 200): Response {
@@ -58,6 +60,14 @@ export async function handleProposalRequest(request: Request, db: Db): Promise<R
   if (segments.length === 3 && request.method === "GET") {
     const proposal = await proposals.find(workspaceId, id);
     return proposal ? json(proposal) : json({ error: "Proposal not found" }, 404);
+  }
+
+  if (segments.length === 4 && segments[3] === "diff" && request.method === "GET") {
+    const proposal = await proposals.find(workspaceId, id);
+    if (!proposal) return json({ error: "Proposal not found" }, 404);
+    const template = await new D1TemplateRepository(db).find(workspaceId, proposal.templateId);
+    if (!template) return json({ error: "Template not found" }, 404);
+    return json({ proposal, diff: diffProposal(template, proposal) });
   }
 
   const action = segments[3];

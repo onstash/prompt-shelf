@@ -11,7 +11,7 @@ tester.run("anti-slop/no-normalized-oauth-query", noNormalizedOauthQueryRule, {
     "api.respondToConsent(accept, oauthQuery(globalThis.location.search));",
     "api.continueOAuth(signedQuery);",
     "const hasRequest = oauthQuery(location.searchStr) !== null;",
-    'throw redirect({ href: `/login${session.search}` });',
+    "throw redirect({ href: `/login${session.search}` });",
     "const title = location.searchStr;",
   ],
   invalid: [

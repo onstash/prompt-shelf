@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { compilePrompt } from "../lib/compile-prompt.ts";
 import type { Db } from "./db.ts";
+import { withinProposalLimit } from "./proposal-permissions.ts";
 import { D1ProposalRepository } from "./proposal-repository.ts";
 import { D1TemplateRepository } from "./template-repository.ts";
 
@@ -143,6 +144,11 @@ export async function executeOperation(
       return { ok: true, data: compilePrompt(template.body, request.arguments.values) };
     }
     case "propose_update": {
+      const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      const recent = await proposals.countSince(workspaceId, principal.clientId, since);
+      if (!withinProposalLimit(recent)) {
+        return { ok: false, error: "Too many proposals this hour. Try again later." };
+      }
       const result = await proposals.create(
         workspaceId,
         request.arguments.templateId,
