@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/onstash/prompt-shelf/compare/v0.7.0...v0.7.1) (2026-11-17)
+
+
+### Bug Fixes
+
+* render the proposal detail page ([#35](https://github.com/onstash/prompt-shelf/issues/35)) ([5795c81](https://github.com/onstash/prompt-shelf/commit/5795c81b2a9e010483e23d1f4b5db3f71ab267a9))
+
 ## [0.7.0](https://github.com/onstash/prompt-shelf/compare/v0.6.0...v0.7.0) (2026-11-17)
 
 
