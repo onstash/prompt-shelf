@@ -7,7 +7,10 @@ const D1_METHODS = new Set(["prepare", "batch", "withSession", "dump"]);
 const ALLOWED_FILES = /(^|\/)src\/server\/(db|database)\.ts$/;
 const TEST_FILES = /\.test\.tsx?$/;
 
-type NamedMember = { computed: boolean; property: { type: string; name?: string; value?: unknown } };
+type NamedMember = {
+  computed: boolean;
+  property: { type: string; name?: string; value?: unknown };
+};
 
 function memberName(node: NamedMember): string | null {
   if (!node.computed && node.property.type === "Identifier") return node.property.name ?? null;

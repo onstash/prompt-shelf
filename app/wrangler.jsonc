@@ -9,7 +9,7 @@
       "binding": "DB",
       "database_name": "prompt-shelf",
       "database_id": "f2fb36ca-7fc2-442e-8061-abaa6d1a22ef",
-      "migrations_dir": "migrations"
-    }
-  ]
+      "migrations_dir": "migrations",
+    },
+  ],
 }
