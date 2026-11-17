@@ -1,7 +1,20 @@
 import { defineConfig } from "oxlint";
 export default defineConfig({
+  overrides: [{ files: ["src/lib/utils.ts"], rules: { "no-restricted-imports": "off" } }],
   jsPlugins: [{ name: "anti-slop", specifier: "./tools/oxlint/anti-slop/src/index.ts" }],
   rules: {
+    "no-restricted-imports": [
+      "error",
+      {
+        paths: [
+          {
+            name: "cn",
+            message:
+              'Import cn from "@/lib/utils". That module is the single boundary for class-name merging.',
+          },
+        ],
+      },
+    ],
     "anti-slop/no-array-filter-map": "error",
     "anti-slop/no-reduce-accumulator-copy": "error",
     "anti-slop/no-chained-type-assertions": "error",

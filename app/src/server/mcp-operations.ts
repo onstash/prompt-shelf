@@ -49,6 +49,15 @@ const schemas = {
       fields: z.array(fieldSchema).max(50),
     })
     .strict(),
+  propose_create: z
+    .object({
+      title: z.string().trim().min(1).max(200),
+      description: z.string().max(1000).default(""),
+      category: z.string().trim().min(1).max(100).default("General"),
+      body: z.string().trim().min(1).max(20_000),
+      fields: z.array(fieldSchema).max(50),
+    })
+    .strict(),
   get_proposal: z.object({ proposalId: idSchema }).strict(),
 };
 
@@ -58,6 +67,7 @@ export const OPERATION_NAMES = [
   "get_revision",
   "render_prompt",
   "propose_update",
+  "propose_create",
   "get_proposal",
 ] as const;
 export type OperationName = (typeof OPERATION_NAMES)[number];
@@ -69,6 +79,7 @@ export const operationRequest = z.discriminatedUnion("operation", [
   z.object({ operation: z.literal("get_revision"), arguments: schemas.get_revision }).strict(),
   z.object({ operation: z.literal("render_prompt"), arguments: schemas.render_prompt }).strict(),
   z.object({ operation: z.literal("propose_update"), arguments: schemas.propose_update }).strict(),
+  z.object({ operation: z.literal("propose_create"), arguments: schemas.propose_create }).strict(),
   z.object({ operation: z.literal("get_proposal"), arguments: schemas.get_proposal }).strict(),
 ]);
 export type OperationRequest = z.infer<typeof operationRequest>;
@@ -80,7 +91,9 @@ const descriptions: Record<OperationName, string> = {
   render_prompt: "Fill a template's fields and return the prompt text for copying.",
   propose_update:
     "Propose a new version of a template. The owner must approve it in Prompt Shelf before it applies.",
-  get_proposal: "Get the status and content of a proposed update.",
+  propose_create:
+    "Propose a new template. A new template is created only after the owner approves it in Prompt Shelf.",
+  get_proposal: "Get the status and content of a proposed update or new template.",
 };
 
 export type OperationResult = { ok: true; data: unknown } | { ok: false; error: string };
@@ -166,6 +179,25 @@ export async function executeOperation(
       if (result.status === "read_only")
         return { ok: false, error: "System examples cannot be changed" };
       return { ok: true, data: result.proposal };
+    }
+    case "propose_create": {
+      const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      const recent = await proposals.countSince(workspaceId, principal.clientId, since);
+      if (!withinProposalLimit(recent)) {
+        return { ok: false, error: "Too many proposals this hour. Try again later." };
+      }
+      const result = await proposals.createNew(
+        workspaceId,
+        {
+          title: request.arguments.title,
+          description: request.arguments.description,
+          category: request.arguments.category,
+          body: request.arguments.body,
+          fields: request.arguments.fields,
+        },
+        principal.clientId,
+      );
+      return { ok: true, data: result.status === "created" ? result.proposal : {} };
     }
     case "get_proposal": {
       const proposal = await proposals.find(workspaceId, request.arguments.proposalId);

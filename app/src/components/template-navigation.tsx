@@ -1,4 +1,5 @@
-import { FileText, LogOut, Plus } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { CheckCheck, FileText, LogOut, Plug, Plus } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,7 +12,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { SavedRuns } from "@/components/saved-runs";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { Template } from "@/lib/api";
 
@@ -97,6 +98,27 @@ export function TemplateNavigation({
           <Plus data-icon="inline-start" /> New template
         </Button>
         <SavedRuns />
+        <div className="mx-1 flex flex-col gap-1">
+          <Link
+            to="/proposals"
+            search={{ status: "pending" }}
+            className={cn(buttonVariants({ variant: "ghost" }), "justify-start")}
+            activeProps={{
+              className: cn(buttonVariants({ variant: "secondary" }), "justify-start"),
+            }}
+          >
+            <CheckCheck data-icon="inline-start" /> Proposed edits
+          </Link>
+          <Link
+            to="/connections"
+            className={cn(buttonVariants({ variant: "ghost" }), "justify-start")}
+            activeProps={{
+              className: cn(buttonVariants({ variant: "secondary" }), "justify-start"),
+            }}
+          >
+            <Plug data-icon="inline-start" /> Connected apps
+          </Link>
+        </div>
       </div>
       <nav aria-label="Templates" className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto">
         <TemplateGroup

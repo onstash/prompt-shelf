@@ -14,12 +14,14 @@ const migrations = [
   "0005_oauth_provider.sql",
   "0006_better_auth_column_names.sql",
   "0007_prompt_update_proposals.sql",
+  "0008_rate_limit.sql",
+  "0009_proposal_creations.sql",
 ];
 
-function createDatabase() {
+function createDatabase(files: readonly string[] = migrations) {
   const sqlite = new DatabaseSync(":memory:");
   sqlite.exec("PRAGMA foreign_keys = ON");
-  for (const file of migrations) {
+  for (const file of files) {
     sqlite.exec(readFileSync(new URL(`../../migrations/${file}`, import.meta.url), "utf8"));
   }
   sqlite.exec(`
@@ -135,7 +137,7 @@ test("approval applies the proposal as the next revision", async () => {
 
   const decision = await repository.approve("workspace-a", created.proposal.id, "user-1");
 
-  assert.deepEqual(decision, { status: "approved", version: 2 });
+  assert.deepEqual(decision, { status: "approved", version: 2, templateId: "owned" });
   assert.equal(revisionCount(sqlite, "owned"), 2);
   // SAFETY: the query selects two columns that the test seeded, and it returns no row when the revision is missing.
   const row = sqlite
@@ -173,6 +175,7 @@ test("a proposal based on an old version conflicts and writes nothing", async ()
   assert.deepEqual(await repository.approve("workspace-a", first.proposal.id, "user-1"), {
     status: "approved",
     version: 2,
+    templateId: "owned",
   });
   const stale = await repository.approve("workspace-a", second.proposal.id, "user-1");
 
@@ -209,4 +212,127 @@ test("approval and rejection are scoped to the owning workspace", async () => {
   assert.deepEqual(await repository.reject("workspace-b", created.proposal.id, "user-1"), {
     status: "not_found",
   });
+});
+
+type ProposalRowColumns = {
+  kind: string;
+  template_id: string;
+  base_version: number;
+  status: string;
+};
+
+function proposalRow(sqlite: DatabaseSync, id: string): ProposalRowColumns | undefined {
+  // SAFETY: the query selects exactly these four columns from one proposal row.
+  return sqlite
+    .prepare(
+      "SELECT kind, template_id, base_version, status FROM template_update_proposals WHERE id = ?",
+    )
+    .get(id) as ProposalRowColumns | undefined;
+}
+
+function revisionBody(sqlite: DatabaseSync, templateId: string): string | undefined {
+  // SAFETY: the query selects one body column from the first revision of a template the test created.
+  const row = sqlite
+    .prepare("SELECT body FROM template_revisions WHERE template_id = ? AND version = 1")
+    .get(templateId) as { body: string } | undefined;
+  return row?.body;
+}
+
+function templateCount(sqlite: DatabaseSync, title: string) {
+  // SAFETY: COUNT(*) always returns exactly one row with a numeric `total` column.
+  return (
+    sqlite.prepare("SELECT COUNT(*) AS total FROM templates WHERE title = ?").get(title) as {
+      total: number;
+    }
+  ).total;
+}
+
+test("a creation proposal has no template until it is approved", async () => {
+  const { repository, sqlite } = createDatabase();
+  const created = await repository.createNew(
+    "workspace-a",
+    content({ title: "New prompt" }),
+    "client-1",
+  );
+
+  assert.equal(created.status, "created");
+  if (created.status !== "created") return;
+  assert.equal(created.proposal.kind, "create");
+  assert.equal(created.proposal.templateId, null);
+  assert.equal(created.proposal.baseVersion, null);
+  assert.equal(templateCount(sqlite, "New prompt"), 0);
+});
+
+test("approving a creation generates the template ID and creates version 1", async () => {
+  const { repository, sqlite } = createDatabase();
+  const created = await repository.createNew(
+    "workspace-a",
+    content({ title: "New prompt", body: "New {{name}}" }),
+    null,
+  );
+  assert.equal(created.status, "created");
+  if (created.status !== "created") return;
+
+  const decision = await repository.approve("workspace-a", created.proposal.id, "user-1");
+
+  assert.equal(decision.status, "approved");
+  if (decision.status !== "approved") return;
+  assert.equal(decision.version, 1);
+  assert.equal(templateCount(sqlite, "New prompt"), 1);
+  const revision = revisionBody(sqlite, decision.templateId);
+  assert.equal(revision, "New {{name}}");
+  const stored = await repository.find("workspace-a", created.proposal.id);
+  assert.equal(stored?.appliedTemplateId, decision.templateId);
+});
+
+test("approving a creation twice does not create a second template", async () => {
+  const { repository, sqlite } = createDatabase();
+  const created = await repository.createNew("workspace-a", content({ title: "Once only" }), null);
+  assert.equal(created.status, "created");
+  if (created.status !== "created") return;
+
+  await repository.approve("workspace-a", created.proposal.id, "user-1");
+  const again = await repository.approve("workspace-a", created.proposal.id, "user-1");
+
+  assert.deepEqual(again, { status: "not_pending" });
+  assert.equal(templateCount(sqlite, "Once only"), 1);
+});
+
+test("rejecting a creation leaves no template behind", async () => {
+  const { repository, sqlite } = createDatabase();
+  const created = await repository.createNew(
+    "workspace-a",
+    content({ title: "Rejected prompt" }),
+    null,
+  );
+  assert.equal(created.status, "created");
+  if (created.status !== "created") return;
+
+  assert.deepEqual(await repository.reject("workspace-a", created.proposal.id, "user-1"), {
+    status: "rejected",
+  });
+  assert.equal(templateCount(sqlite, "Rejected prompt"), 0);
+});
+
+test("migration 0009 keeps existing update proposals intact", () => {
+  const before = migrations.slice(0, 8);
+  const { repository, sqlite } = createDatabase(before);
+  void repository;
+  sqlite.exec(`
+    INSERT INTO templates (id, title, description, category, current_version, workspace_id)
+      VALUES ('kept', 'Kept', '', 'General', 1, 'workspace-a');
+    INSERT INTO template_revisions (template_id, version, body, fields_json)
+      VALUES ('kept', 1, 'Old {{name}}', '[]');
+    INSERT INTO template_update_proposals
+      (id, workspace_id, template_id, base_version, title, body, fields_json, status, created_at)
+      VALUES ('old-proposal', 'workspace-a', 'kept', 1, 'Kept edit', 'New {{name}}', '[]', 'pending', '2026-01-02T00:00:00.000Z');
+  `);
+
+  sqlite.exec(readFileSync(new URL(`../../migrations/${migrations[8]}`, import.meta.url), "utf8"));
+
+  const row = proposalRow(sqlite, "old-proposal");
+  assert.equal(row?.kind, "update");
+  assert.equal(row?.template_id, "kept");
+  assert.equal(row?.base_version, 1);
+  assert.equal(row?.status, "pending");
 });
