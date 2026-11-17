@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/onstash/prompt-shelf/compare/v0.6.0...v0.7.0) (2026-11-17)
+
+
+### Features
+
+* add proposal status tabs and shared app shell ([#32](https://github.com/onstash/prompt-shelf/issues/32)) ([e01f082](https://github.com/onstash/prompt-shelf/commit/e01f082fddc0bf3667eb01916b9cbba885a7137a))
+
 ## [0.6.0](https://github.com/onstash/prompt-shelf/compare/v0.5.0...v0.6.0) (2026-11-17)
 
 
