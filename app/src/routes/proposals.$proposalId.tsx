@@ -1,9 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, redirect, useParams } from "@tanstack/react-router";
+import { ChevronLeft } from "lucide-react";
 import { useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/containers/page-container";
+import { BodyDiff, DiffSummary, FieldDiff, MetadataDiff } from "@/components/proposal-diff-view";
 import { ShelfLayout } from "@/components/shelf-layout";
 import { api } from "@/lib/api";
 import { getSessionStatus } from "@/lib/auth.functions";
@@ -17,8 +19,6 @@ export const Route = createFileRoute("/proposals/$proposalId")({
   },
   component: ProposalRoute,
 });
-
-const LINE_MARK = { same: " ", added: "+", removed: "-" } as const;
 
 function ProposalRoute() {
   const { proposalId } = useParams({ from: "/proposals/$proposalId" });
@@ -76,6 +76,7 @@ function ProposalRoute() {
 
   const { proposal, diff } = detail.data;
   const decided = proposal.status !== "pending";
+  const pending = decide.isPending;
 
   return (
     <PageContainer>
@@ -84,17 +85,20 @@ function ProposalRoute() {
           <Link
             to="/proposals"
             search={{ status: "pending" }}
-            className="text-sm underline-offset-4 hover:underline"
+            className="inline-flex w-fit items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
+            <ChevronLeft className="size-4" aria-hidden="true" />
             All proposed edits
           </Link>
-          <header>
-            <h1 className="text-2xl font-semibold">{proposal.title}</h1>
-            <p className="text-muted-foreground">
+
+          <header className="flex flex-col gap-2">
+            <h1 className="text-2xl font-semibold text-balance">{proposal.title}</h1>
+            <p className="text-sm text-muted-foreground">
               {proposal.kind === "create"
                 ? "New template"
-                : `Based on version ${proposal.baseVersion}`}{" "}
-              · status {proposal.status}
+                : `Based on version ${proposal.baseVersion}`}
+              {" · "}
+              <span className="capitalize">{proposal.status}</span>
             </p>
           </header>
 
@@ -103,75 +107,61 @@ function ProposalRoute() {
               This edit removes or changes fields. Saved answers may stop matching the template.
             </Alert>
           ) : null}
-          {message ? <p className="text-sm">{message}</p> : null}
+
+          <p role="status" aria-live="polite" className="min-h-5 text-sm">
+            {message}
+          </p>
+
+          <section aria-labelledby="body-heading" className="flex flex-col gap-3">
+            <div className="flex flex-col gap-1">
+              <h2 id="body-heading" className="font-medium">
+                Prompt text
+              </h2>
+              <DiffSummary
+                body={diff.body}
+                addedTokens={diff.addedTokens}
+                removedTokens={diff.removedTokens}
+              />
+            </div>
+            <BodyDiff lines={diff.body} />
+          </section>
 
           {diff.metadata.length > 0 ? (
-            <section aria-labelledby="meta-heading" className="flex flex-col gap-2">
+            <section aria-labelledby="meta-heading" className="flex flex-col gap-3">
               <h2 id="meta-heading" className="font-medium">
                 Details
               </h2>
-              <ul className="flex flex-col gap-1 text-sm">
-                {diff.metadata.map((change) => (
-                  <li key={change.name}>
-                    {change.name}: <span className="line-through">{change.from}</span> → {change.to}
-                  </li>
-                ))}
-              </ul>
+              <MetadataDiff changes={diff.metadata} />
             </section>
           ) : null}
 
           {diff.fields.length > 0 ? (
-            <section aria-labelledby="fields-heading" className="flex flex-col gap-2">
+            <section aria-labelledby="fields-heading" className="flex flex-col gap-3">
               <h2 id="fields-heading" className="font-medium">
                 Fields
               </h2>
-              <ul className="flex flex-col gap-1 text-sm">
-                {diff.fields.map((change) => (
-                  <li key={`${change.kind}-${change.key}`}>
-                    <span className={change.breaking ? "text-destructive" : undefined}>
-                      {change.kind} “{change.key}”
-                    </span>
-                    {change.details.length ? `: ${change.details.join(", ")}` : null}
-                  </li>
-                ))}
-              </ul>
+              <FieldDiff changes={diff.fields} />
             </section>
           ) : null}
 
-          <section aria-labelledby="body-heading" className="flex flex-col gap-2">
-            <h2 id="body-heading" className="font-medium">
-              Prompt text
-            </h2>
-            <pre className="overflow-x-auto rounded-md border p-4 text-sm whitespace-pre-wrap">
-              {diff.body.map((line, index) => (
-                <span
-                  key={`${index}-${line.kind}`}
-                  className={line.kind === "same" ? "block" : "block font-medium"}
-                >
-                  {LINE_MARK[line.kind]} {line.text}
-                  {"\n"}
-                </span>
-              ))}
-            </pre>
-            <p className="text-sm text-muted-foreground">
-              Added tokens: {diff.addedTokens.join(", ") || "none"} · Removed tokens:{" "}
-              {diff.removedTokens.join(", ") || "none"}
-            </p>
-          </section>
-
           {decided ? null : (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="flex flex-col gap-3 max-sm:sticky max-sm:bottom-0 max-sm:-mx-4 max-sm:border-t max-sm:bg-background/95 max-sm:px-4 max-sm:pt-4 max-sm:pb-[max(1rem,env(safe-area-inset-bottom))] max-sm:backdrop-blur sm:flex-row">
               <Button
-                className="h-12"
-                disabled={decide.isPending}
+                className="h-12 flex-1 active:scale-[0.96] transition-transform"
+                aria-busy={pending}
+                disabled={pending}
                 onClick={() => decide.mutate("approve")}
               >
-                Approve and apply
+                {pending
+                  ? "Applying…"
+                  : proposal.kind === "create"
+                    ? "Create template"
+                    : "Approve and apply"}
               </Button>
               <Button
-                className="h-12"
+                className="h-12 flex-1 active:scale-[0.96] transition-transform"
                 variant="outline"
-                disabled={decide.isPending}
+                disabled={pending}
                 onClick={() => decide.mutate("reject")}
               >
                 Reject
