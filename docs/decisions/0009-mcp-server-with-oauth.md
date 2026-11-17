@@ -20,6 +20,8 @@ Host an MCP endpoint at `/mcp` inside the Prompt Shelf Worker. Prompt Shelf is b
 - The MCP surface has two tools, `search` and `execute`. Each operation checks its scope.
 - Tokens are verified with `jose` against a local JWKS, since authorization and MCP run in the same Worker.
 - Prompt Shelf does not approve anything through MCP. Approval is covered in ADR-0010.
+- A token without the required scope gets an MCP tool error (`isError: true`) with the missing scope named. The HTTP status stays 200 because the MCP transport carries the error. Unauthenticated or invalid tokens get HTTP 401 with a `WWW-Authenticate` challenge.
+- Access tokens last one hour and refresh tokens one week, set explicitly on the `mcp()` plugin.
 
 ## Alternatives considered
 

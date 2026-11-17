@@ -4,6 +4,7 @@ import { compilePrompt } from "@/lib/compile-prompt";
 import { createAuth } from "@/server/auth";
 import { getDb } from "@/server/database";
 import { personalWorkspaceId } from "@/server/workspace";
+import { handleProposalRequest } from "@/server/proposal-api";
 import { handleRunRequest } from "@/server/run-api";
 import {
   D1TemplateRepository,
@@ -101,6 +102,10 @@ async function handle(request: Request) {
       .bind(crypto.randomUUID(), name, templateId, workspaceId)
       .run();
     return Response.json({ accepted: true }, { status: 202 });
+  }
+
+  if (path === "/api/proposals" || path.startsWith("/api/proposals/")) {
+    return handleProposalRequest(request, db);
   }
 
   const isTemplatePath = path === "/api/templates" || path.startsWith("/api/templates/");
