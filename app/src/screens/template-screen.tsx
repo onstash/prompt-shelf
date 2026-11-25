@@ -10,6 +10,7 @@ import { TemplateDetailSkeleton } from "@/components/template-detail-skeleton";
 import { TemplateWorkspace } from "@/components/template-workspace";
 import { ApiError, api, type Template, type TemplateField } from "@/lib/api";
 import { copyAndSaveRun } from "@/lib/copy-and-save-run";
+import { compilePrompt } from "@/lib/compile-prompt";
 import { authClient } from "@/lib/auth";
 
 type Props = {
@@ -60,9 +61,6 @@ export function TemplateScreen({ templates, mode, initialTemplateId }: Props) {
       : newDraft,
   );
   const [values, setValues] = useState<Values>(() => emptyValues(initialTemplate));
-  const [segments, setSegments] = useState<
-    Array<{ type: "static" | "value"; text: string; key?: string }>
-  >([]);
   const [copied, setCopied] = useState(false);
   const openedTemplateIds = useRef(new Set<string>());
   const startedTemplateIds = useRef(new Set<string>());
@@ -82,7 +80,6 @@ export function TemplateScreen({ templates, mode, initialTemplateId }: Props) {
   const compileMutation = useMutation({
     mutationFn: (previewValues?: Values) =>
       api.compileTemplate(selectedTemplateId, previewValues ?? values),
-    onSuccess: (result) => setSegments(result.segments),
   });
   const saveMutation = useMutation({
     mutationFn: () =>
@@ -97,14 +94,14 @@ export function TemplateScreen({ templates, mode, initialTemplateId }: Props) {
     track("template_opened", template.id);
   }, [template]);
 
-  useEffect(() => {
-    if (!template) return;
-    compileMutation.mutate(
-      Object.fromEntries(
-        template.fields.map((field) => [field.key, values[field.key] || `[${field.label}]`]),
-      ),
-    );
-  }, [template, values]);
+  const segments = template
+    ? compilePrompt(
+        template.body,
+        Object.fromEntries(
+          template.fields.map((field) => [field.key, values[field.key] || `[${field.label}]`]),
+        ),
+      ).segments
+    : [];
 
   const ready = (template?.fields ?? [])
     .filter((field) => field.required)
@@ -140,12 +137,6 @@ export function TemplateScreen({ templates, mode, initialTemplateId }: Props) {
   };
 
   const saveTemplate = async () => {
-    if (!draft.title.trim() || !draft.body.trim())
-      return toast.error("Add a title and prompt body first");
-    if (draft.fields.some((field) => !field.key.trim() || !field.label.trim()))
-      return toast.error("Complete every field key and label first");
-    const keys = draft.fields.map((field) => field.key.trim());
-    if (new Set(keys).size !== keys.length) return toast.error("Field keys must be unique");
     try {
       const savedTemplate = await saveMutation.mutateAsync();
       await queryClient.invalidateQueries({ queryKey: ["templates"] });

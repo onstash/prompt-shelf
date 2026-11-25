@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Eraser, Trash2 } from "lucide-react";
 import {
   AlertDialog,
@@ -48,6 +48,13 @@ export function TemplateCreator({
   isSaving = false,
 }: Props) {
   const fieldMemory = useRef(new Map(draft.fields.map((field) => [field.key, field] as const)));
+  const [submitted, setSubmitted] = useState(false);
+  const titleError = submitted && !draft.title.trim();
+  const bodyError = submitted && !draft.body.trim();
+  const fieldError =
+    submitted && draft.fields.some((field) => !field.key.trim() || !field.label.trim());
+  const keys = draft.fields.map((field) => field.key.trim());
+  const duplicateKeys = submitted && new Set(keys).size !== keys.length;
 
   const updateBody = (body: string) => {
     for (const field of draft.fields) fieldMemory.current.set(field.key, field);
@@ -76,8 +83,27 @@ export function TemplateCreator({
   return (
     <form
       className="mx-auto max-w-7xl px-5 py-10"
+      noValidate
       onSubmit={(event) => {
         event.preventDefault();
+        setSubmitted(true);
+        if (!draft.title.trim()) {
+          event.currentTarget.querySelector<HTMLInputElement>("#template-title")?.focus();
+          return;
+        }
+        if (!draft.body.trim()) {
+          event.currentTarget.querySelector<HTMLTextAreaElement>("#template-body")?.focus();
+          return;
+        }
+        const invalidField = draft.fields.find((field) => !field.key.trim() || !field.label.trim());
+        if (invalidField) {
+          document.getElementById(`field-${invalidField.key}-label`)?.focus();
+          return;
+        }
+        if (new Set(keys).size !== keys.length) {
+          document.getElementById("template-body")?.focus();
+          return;
+        }
         onSave();
       }}
     >
@@ -101,10 +127,17 @@ export function TemplateCreator({
               <Label htmlFor="template-title">Template name</Label>
               <Input
                 id="template-title"
+                aria-invalid={titleError || undefined}
+                aria-describedby={titleError ? "template-title-error" : undefined}
                 value={draft.title}
                 onChange={(event) => setDraft({ ...draft, title: event.target.value })}
                 placeholder="e.g. Clear first draft"
               />
+              {titleError ? (
+                <p id="template-title-error" className="text-sm text-destructive">
+                  Enter a template name.
+                </p>
+              ) : null}
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="template-description">Description</Label>
@@ -124,11 +157,18 @@ export function TemplateCreator({
               </p>
               <Textarea
                 id="template-body"
+                aria-invalid={bodyError || duplicateKeys || undefined}
+                aria-describedby={bodyError || duplicateKeys ? "template-body-error" : undefined}
                 purpose="document"
                 value={draft.body}
                 onChange={(event) => updateBody(event.target.value)}
                 placeholder={"Write a concise summary for {{audience}} in a {{tone}} tone."}
               />
+              {bodyError || duplicateKeys ? (
+                <p id="template-body-error" className="text-sm text-destructive">
+                  {bodyError ? "Enter prompt instructions." : "Field keys must be unique."}
+                </p>
+              ) : null}
             </div>
           </CardContent>
         </Card>
@@ -140,6 +180,7 @@ export function TemplateCreator({
           <CardContent className="px-6 !py-7">
             <TemplateFieldEditor
               draft={{ fields: draft.fields }}
+              showErrors={fieldError}
               setDraft={(next) => setDraft({ ...draft, ...next })}
             />
           </CardContent>
