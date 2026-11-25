@@ -66,10 +66,11 @@ function ConnectionsRoute() {
                 </ul>
                 <Button
                   variant="outline"
+                  aria-label={`Revoke access for ${connection.clientName}`}
                   disabled={revoke.isPending}
                   onClick={() => revoke.mutate(connection.consentId)}
                 >
-                  Revoke access for {connection.clientName}
+                  Revoke access
                 </Button>
               </li>
             ))}

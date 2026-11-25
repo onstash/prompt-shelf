@@ -1,7 +1,12 @@
 import type { ReactNode } from "react";
 import { Check, Copy, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardTitle } from "@/components/ui/card";
+import {
+  WorkspaceCard,
+  WorkspaceCardContent,
+  WorkspaceCardHeader,
+} from "@/components/ui/workspace-card";
 
 type Segment = { type: "static" | "value"; text: string; key?: string };
 type Props = {
@@ -22,13 +27,13 @@ export function PromptPreview({
   children,
 }: Props) {
   return (
-    <Card className="flex h-[clamp(360px,55dvh,560px)] min-w-0 max-w-full flex-col overflow-hidden border-black/[.08] shadow-sm">
-      <CardHeader className="preview-header items-center justify-between border-b bg-white/60 px-6 py-4">
-        <CardTitle className="text-base">Live prompt</CardTitle>
+    <WorkspaceCard>
+      <WorkspaceCardHeader>
+        <CardTitle>Live prompt</CardTitle>
         <span className="text-xs text-muted-foreground">{revisionLabel}</span>
-      </CardHeader>
-      <CardContent className="min-h-0 flex-1 overflow-y-auto bg-white px-6 py-6">
-        <div className="min-w-0 whitespace-pre-wrap break-words font-mono text-[14px] leading-8 text-[#45464a] [overflow-wrap:anywhere] sm:text-[15px]">
+      </WorkspaceCardHeader>
+      <WorkspaceCardContent>
+        <div className="min-w-0 whitespace-pre-wrap break-words font-mono text-[14px] leading-8 text-card-foreground [overflow-wrap:anywhere] sm:text-[15px]">
           {segments.length > 0
             ? segments.map((segment, index) =>
                 segment.type === "value" ? (
@@ -39,8 +44,8 @@ export function PromptPreview({
               )
             : null}
         </div>
-      </CardContent>
-      <div className="flex flex-wrap items-center gap-3 border-t bg-white px-4 py-4 sm:px-6">
+      </WorkspaceCardContent>
+      <div className="flex flex-wrap items-center gap-3 border-t bg-card px-4 py-4 sm:px-6">
         <span className="hidden text-xs text-muted-foreground sm:inline">
           Blue text comes from your answers
         </span>
@@ -58,6 +63,6 @@ export function PromptPreview({
           </Button>
         </div>
       </div>
-    </Card>
+    </WorkspaceCard>
   );
 }

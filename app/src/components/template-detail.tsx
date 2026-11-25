@@ -12,7 +12,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardTitle } from "@/components/ui/card";
+import {
+  WorkspaceCard,
+  WorkspaceCardHeader,
+  WorkspaceCardContent,
+} from "@/components/ui/workspace-card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -108,6 +113,7 @@ function CustomizeForm({
               {field.type === "textarea" ? (
                 <Textarea
                   id={id}
+                  aria-required={field.required || undefined}
                   value={values[field.key] ?? ""}
                   onChange={(event) => update(field.key, event.target.value)}
                 />
@@ -116,7 +122,7 @@ function CustomizeForm({
                   value={values[field.key] ?? ""}
                   onValueChange={(value) => value && update(field.key, value)}
                 >
-                  <SelectTrigger id={id}>
+                  <SelectTrigger id={id} aria-required={field.required || undefined}>
                     <SelectValue placeholder="Choose an option" />
                   </SelectTrigger>
                   <SelectContent>
@@ -130,6 +136,7 @@ function CustomizeForm({
               ) : (
                 <Input
                   id={id}
+                  aria-required={field.required || undefined}
                   type={field.type === "number" ? "number" : "text"}
                   value={values[field.key] ?? ""}
                   onChange={(event) => update(field.key, event.target.value)}
@@ -166,7 +173,7 @@ function CustomizeForm({
         </AlertDialog>
         <span
           className={
-            ready ? "ml-auto text-xs text-emerald-700" : "ml-auto text-xs text-muted-foreground"
+            ready ? "ml-auto text-xs text-success" : "ml-auto text-xs text-muted-foreground"
           }
         >
           {ready ? "Ready to copy" : "Start with the required fields"}
@@ -265,16 +272,16 @@ export function TemplateDetail({
               />
             </div>
           </SheetContent>
-          <Card className="hidden h-[clamp(360px,55dvh,560px)] min-w-0 overflow-hidden border-black/[.08] shadow-sm lg:flex lg:flex-col">
-            <CardHeader className="border-b bg-white/60 px-6 py-4">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base">Customize</CardTitle>
+          <WorkspaceCard kind="customize">
+            <WorkspaceCardHeader>
+              <div className="flex w-full items-center justify-between">
+                <CardTitle>Customize</CardTitle>
                 <span className="text-xs text-muted-foreground">
                   {fields.length} {fields.length === 1 ? "field" : "fields"}
                 </span>
               </div>
-            </CardHeader>
-            <CardContent className="min-h-0 flex-1 overflow-y-auto bg-white px-6 py-6">
+            </WorkspaceCardHeader>
+            <WorkspaceCardContent>
               <CustomizeForm
                 fields={fields}
                 values={values}
@@ -284,8 +291,8 @@ export function TemplateDetail({
                 variant={variant}
                 idPrefix="desktop-field"
               />
-            </CardContent>
-          </Card>
+            </WorkspaceCardContent>
+          </WorkspaceCard>
         </Sheet>
       </div>
     </main>

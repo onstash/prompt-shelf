@@ -61,10 +61,12 @@ function ProposalsRoute() {
     <PageContainer>
       <ShelfLayout>
         <main className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-10">
-          <h1 className="text-2xl font-semibold">Proposed edits</h1>
-          <p className="text-muted-foreground">
-            AI apps can suggest changes to your prompts. Nothing changes until you approve it.
-          </p>
+          <header className="flex flex-col gap-2">
+            <h1 className="text-2xl font-semibold text-balance">Proposed edits</h1>
+            <p className="max-w-prose text-sm leading-6 text-muted-foreground">
+              AI apps can suggest changes to your prompts. Nothing changes until you approve it.
+            </p>
+          </header>
           <nav aria-label="Filter by status" className="flex flex-wrap gap-2">
             {STATUS_TABS.map((tab) => {
               const active = tab.value === status;
@@ -76,6 +78,7 @@ function ProposalsRoute() {
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     buttonVariants({ variant: active ? "secondary" : "ghost", size: "sm" }),
+                    "min-h-11 px-3",
                   )}
                 >
                   {tab.label}
@@ -94,15 +97,18 @@ function ProposalsRoute() {
           ) : null}
           <ul className="flex flex-col gap-3">
             {proposals.data?.proposals.map((proposal) => (
-              <li key={proposal.id} className="rounded-md border p-4">
+              <li
+                key={proposal.id}
+                className="flex flex-col gap-2 rounded-lg border bg-card p-4 sm:p-5"
+              >
                 <Link
                   to="/proposals/$proposalId"
                   params={{ proposalId: proposal.id }}
-                  className="font-medium underline-offset-4 hover:underline"
+                  className="w-fit font-medium break-words underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4"
                 >
                   {proposal.title}
                 </Link>
-                <p className="text-sm text-muted-foreground">{describe(proposal)}</p>
+                <p className="text-sm leading-6 text-muted-foreground">{describe(proposal)}</p>
               </li>
             ))}
           </ul>

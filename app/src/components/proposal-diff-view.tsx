@@ -77,11 +77,11 @@ export function BodyDiff({ lines }: { lines: BodyLine[] }) {
 /** Title, description, and category, each shown as the old value and the new one. */
 export function MetadataDiff({ changes }: { changes: MetadataChange[] }) {
   return (
-    <dl className="grid grid-cols-[auto_1fr] items-baseline gap-x-6 gap-y-3 text-sm">
+    <dl className="grid grid-cols-1 gap-y-2 text-sm sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-x-6 sm:gap-y-4">
       {changes.map((change) => (
         <Fragment key={change.name}>
           <dt className="text-muted-foreground">{METADATA_LABEL[change.name]}</dt>
-          <dd className="flex flex-col gap-1">
+          <dd className="mb-3 flex min-w-0 flex-col gap-1 break-words sm:mb-0">
             <span className="rounded-sm bg-destructive-soft px-1.5 py-0.5 line-through decoration-destructive/70">
               <span className="sr-only">Was: </span>
               {change.from || "empty"}
@@ -104,7 +104,7 @@ export function FieldDiff({ changes }: { changes: FieldChange[] }) {
       {changes.map((change) => (
         <li
           key={`${change.kind}-${change.key}`}
-          className="flex items-start justify-between gap-4 p-3 text-sm"
+          className="flex flex-wrap items-start justify-between gap-3 p-4 text-sm"
         >
           <div className="flex min-w-0 flex-col gap-1">
             <p className="font-mono font-medium break-all">{change.key}</p>

@@ -55,7 +55,12 @@ function ProposalRoute() {
     return (
       <PageContainer>
         <ShelfLayout>
-          <main className="sr-only">Loading proposed edit…</main>
+          <main
+            className="mx-auto max-w-2xl px-4 py-10 text-sm text-muted-foreground"
+            role="status"
+          >
+            Loading proposed edit…
+          </main>
         </ShelfLayout>
       </PageContainer>
     );
@@ -108,9 +113,11 @@ function ProposalRoute() {
             </Alert>
           ) : null}
 
-          <p role="status" aria-live="polite" className="min-h-5 text-sm">
-            {message}
-          </p>
+          {message ? (
+            <p role="status" aria-live="polite" className="rounded-lg bg-muted px-4 py-3 text-sm">
+              {message}
+            </p>
+          ) : null}
 
           <section aria-labelledby="body-heading" className="flex flex-col gap-3">
             <div className="flex flex-col gap-1">
@@ -152,7 +159,7 @@ function ProposalRoute() {
                 disabled={pending}
                 onClick={() => decide.mutate("approve")}
               >
-                {pending
+                {pending && decide.variables === "approve"
                   ? "Applying…"
                   : proposal.kind === "create"
                     ? "Create template"
@@ -164,7 +171,7 @@ function ProposalRoute() {
                 disabled={pending}
                 onClick={() => decide.mutate("reject")}
               >
-                Reject
+                {pending && decide.variables === "reject" ? "Rejecting…" : "Reject"}
               </Button>
             </div>
           )}

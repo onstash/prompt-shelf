@@ -11,9 +11,9 @@ import {
 import type { FieldType, TemplateField } from "@/lib/api";
 
 type Draft = { fields: TemplateField[] };
-type Props = { draft: Draft; setDraft: (draft: Draft) => void };
+type Props = { draft: Draft; setDraft: (draft: Draft) => void; showErrors?: boolean };
 
-export function TemplateFieldEditor({ draft, setDraft }: Props) {
+export function TemplateFieldEditor({ draft, setDraft, showErrors = false }: Props) {
   const [optionInputs, setOptionInputs] = useState<Record<string, string>>({});
 
   if (draft.fields.length === 0) {
@@ -58,6 +58,12 @@ export function TemplateFieldEditor({ draft, setDraft }: Props) {
             <Label htmlFor={`field-${field.key}-label`}>Label</Label>
             <Input
               id={`field-${field.key}-label`}
+              aria-invalid={(showErrors && (!field.key.trim() || !field.label.trim())) || undefined}
+              aria-describedby={
+                showErrors && (!field.key.trim() || !field.label.trim())
+                  ? `field-${field.key}-error`
+                  : undefined
+              }
               value={field.label}
               onChange={(event) => {
                 const fields = [...draft.fields];
@@ -65,6 +71,11 @@ export function TemplateFieldEditor({ draft, setDraft }: Props) {
                 setDraft({ ...draft, fields });
               }}
             />
+            {showErrors && (!field.key.trim() || !field.label.trim()) ? (
+              <p id={`field-${field.key}-error`} className="text-sm text-destructive">
+                Enter a field label and key.
+              </p>
+            ) : null}
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor={`field-${field.key}-type`}>Answer type</Label>

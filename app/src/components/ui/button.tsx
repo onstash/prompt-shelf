@@ -49,7 +49,10 @@ function Button({
   return (
     <ButtonPrimitive
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(
+        buttonVariants({ variant, size, className }),
+        "max-md:min-h-11 max-md:min-w-11",
+      )}
       {...props}
     />
   );

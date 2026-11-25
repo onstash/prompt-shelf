@@ -1,8 +1,17 @@
 import { defineConfig } from "oxlint";
 export default defineConfig({
   overrides: [{ files: ["src/lib/utils.ts"], rules: { "no-restricted-imports": "off" } }],
-  jsPlugins: [{ name: "anti-slop", specifier: "./tools/oxlint/anti-slop/src/index.ts" }],
+  jsPlugins: [
+    { name: "anti-slop", specifier: "./tools/oxlint/anti-slop/src/index.ts" },
+    "@shadcn/lint",
+  ],
   rules: {
+    "shadcn/no-restyle": "warn",
+    "shadcn/no-raw-colors": "warn",
+    "shadcn/no-arbitrary-values": "warn",
+    "shadcn/no-inline-styles": "warn",
+    "shadcn/no-unknown-classes": "warn",
+    "shadcn/require-static-classes": "warn",
     "no-restricted-imports": [
       "error",
       {

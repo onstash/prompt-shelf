@@ -60,6 +60,7 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 :root {
+  --workspace-card-height: clamp(360px, 55dvh, 560px);
   font-family: var(--font-sans);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
