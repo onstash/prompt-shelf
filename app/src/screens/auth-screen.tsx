@@ -35,7 +35,7 @@ export function AuthScreen() {
           </p>
         </div>
         {error ? <Alert variant="destructive">{error}</Alert> : null}
-        <Button className="w-full text-md" size="lg" disabled={pending} onClick={signIn}>
+        <Button className="w-full text-base" size="lg" disabled={pending} onClick={signIn}>
           {pending ? "Opening Google…" : "Continue with Google"}
         </Button>
       </div>

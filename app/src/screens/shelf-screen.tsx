@@ -22,7 +22,12 @@ export function ShelfScreen({ initialTemplateId, mode = "view" }: Props) {
   if (session.isPending) {
     return (
       <PageContainer>
-        <main className="sr-only">Loading session…</main>
+        <main
+          className="flex min-h-dvh items-center justify-center text-sm text-muted-foreground"
+          role="status"
+        >
+          Loading session…
+        </main>
       </PageContainer>
     );
   }
