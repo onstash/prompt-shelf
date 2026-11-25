@@ -37,7 +37,7 @@ export function TemplateVersionHistory({ template }: Props) {
           <SheetDescription>Review the prompt and fields from previous versions.</SheetDescription>
         </SheetHeader>
         <div className="grid min-h-0 flex-1 grid-rows-[auto_1fr] gap-5 overflow-hidden px-5 pb-5">
-          <div className="flex gap-1 overflow-x-auto" aria-label="Template versions">
+          <div className="flex gap-2 overflow-x-auto" aria-label="Template versions">
             {revisions.isPending ? (
               <p className="p-3 text-sm text-muted-foreground">Loading versions…</p>
             ) : (
